@@ -123,34 +123,10 @@ function populateWorld() {
 function create() {
     game.physics.startSystem(Phaser.Physics.P2JS);
     populateWorld();
-    testPawn = new Pawn(game, 32, 32, 'tile_214', "Player_1");
-    game.physics.p2.enable(testPawn);
-    testPawn.orderMove(window.innerWidth * Math.random(), window.innerHeight * Math.random());
-    console.log(testPawn.moveQueue);
 }
 
 
 function update() {
-
-    if (testPawn.gridX === testPawn.moveQueue[0][0] && testPawn.gridY === testPawn.moveQueue[0][1]) {
-        testPawn.moveQueue.splice(0, 1);
-    }
-    console.log(testPawn.moveQueue);
-    if (testPawn.moveQueue.length > 0) {
-        var targetX = 32 + (testPawn.moveQueue[0][0] * 64);
-        var targetY = 32 + (testPawn.moveQueue[0][1] * 64);
-        if (testPawn.x > targetX) {
-            testPawn.body.moveLeft(50);
-        } else if (testPawn.x < targetX) {
-            testPawn.body.moveRight(50);
-        }
-        if (testPawn.y > targetY) {
-            testPawn.body.moveUp(50);
-        } else if (testPawn.y < targetY) {
-            testPawn.body.moveDown(50);
-        }
-
-    }
 
 }
 

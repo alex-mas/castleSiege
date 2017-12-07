@@ -21,21 +21,20 @@ Unit = function (game, x, y, spriteName, player, attributes) {
     //parent constructor
     if (attributes) {
         Pawn.call(this, game, x, y, spriteName, player, attributes);
-    } else if(player){
+    } else if (player) {
         Pawn.call(this, game, x, y, spriteName, player);
-    }else{
-        Pawn.call(this,game,x,y,spriteName);
+    } else {
+        Pawn.call(this, game, x, y, spriteName);
     }
-    game.add.existing(this);
+    //game.add.existing(this);
 
     //set the owner of the unit
-    if(player){
+    if (player) {
         this.owner = player;
-    }else{
+    } else {
         this.owner = "defaultAI";
     }
     //initialize properties
-    this.att = attributes;
     this.orders = [];
     this.currentOrder = undefined;
     this.pathfinder.grid = new pf.Grid(this.game.grid.collisionGrid);
@@ -73,7 +72,7 @@ Unit.prototype.executeMove = function () {
     if (this.currentOrder.points.length > 0) {
         //determine what is the next step in grid points
         let nextMoveStep = this.currentOrder.points[0];
-        
+
         logger.debug(`Unit grid x position is : ${this.gridX}`);
         logger.debug(`Unit grid y position is : ${this.gridY}`);
         logger.debug(`next move is going to x grid coordinates: ${nextMoveStep[0]}`);
@@ -89,7 +88,7 @@ Unit.prototype.executeMove = function () {
             this.currentOrder.points.splice(0, 1);
             nextMoveStep = this.currentOrder.points[0];
         }
-        if(this.currentOrder.points.length > 0){
+        if (this.currentOrder.points.length > 0) {
             //iterate deciding the direction to move
             let xDir,
                 yDir,
@@ -111,7 +110,7 @@ Unit.prototype.executeMove = function () {
             }
             logger.debug(`Moving direction will be: ${xDir} ${yDir}`);
             this.move(xDir, yDir);
-        }else{
+        } else {
             this.clearOrder();
         }
 
@@ -178,12 +177,12 @@ Unit.prototype.findPath = function (x, y, method) {
 }
 
 //TODO: Function to handle removing the current order when its finished
-Unit.prototype.clearOrders = function() {
+Unit.prototype.clearOrders = function () {
     this.stop();
     this.currentOrder = undefined;
     this.orders = [];
 }
-Unit.prototype.clearOrder = function(){
+Unit.prototype.clearOrder = function () {
     this.stop();
     this.currentOrder = undefined;
     this.orders.splice(0, 1);
@@ -206,6 +205,7 @@ Unit.prototype.concludeOrder = function () {
 Unit.prototype.executeOrders = function () {
     //logger.debug(`currentOrder is: ${JSON.stringify(this.currentOrder)}`);
     //logger.debug(`Orders are: ${JSON.stringify(this.orders)}`);
+    //logger.silly(`current order is: `, this.currentOrder);
     if (!this.currentOrder) {
         console.log('order is undefined');
         //check if the order queue has elements
@@ -213,52 +213,49 @@ Unit.prototype.executeOrders = function () {
             logger.info(`Executing unit change of orders`);
             //give the pawn its next order
             logger.info(`Before splicing orders current order is : {type:${this.currentOrder}}`);
-            this.currentOrder= this.orders[0];
+            this.currentOrder = this.orders[0];
             //console.log('Order queue: ',this.orders);
-            console.log(`There are pending orders, assigning the following order: `,this.currentOrder);
+            console.log(`There are pending orders, assigning the following order: `, this.currentOrder);
             console.log(`The points to move to are : ${this.currentOrder.points}`);
-            
-        }else{
+
+        } else {
             //console.log('returning');
             return;
         }
-        
+
     }
-    if(true) {
-        console.log('order is not undefined');
-        //Check each possible case and perform its appropiate action either do nothing.
-        switch (this.currentOrder.type) {
-            case 'staticMovement':
-                if (this.currentOrder.computed) {
-                    this.executeMove();
-                } else {
-                    this.computeMove(this.currentOrder.x, this.currentOrder.y);
-                }
+    console.log('order is not undefined');
+    //Check each possible case and perform its appropiate action either do nothing.
+    switch (this.currentOrder.type) {
+        case 'staticMovement':
+            if (this.currentOrder.computed) {
+                this.executeMove();
+            } else {
+                this.computeMove(this.currentOrder.x, this.currentOrder.y);
+            }
             break;
-            //WARNING: dynamic movement never ends because the unit collision doesn't allow it to reach the other unit
-            case 'dynamicMovement':
-                logger.silly(`executing dynamic movement`);
-                //check if we have arrived at destination
-                let targetX = utils.pointToGrid(this.currentOrder.target.x);
-                let targetY = utils.pointToGrid(this.currentOrder.target.y);
-                if(this.gridX === targetX && this.gridY === targetY){
-                    //nullify order
-                    this.clearOrder();
-                }else{
-                    //check if target has moved from its grid position
-                   //console.log(`target x is: ${targetX}`);
-                    //console.log(`current order last x point is: ${this.currentOrder.points[this.currentOrder.points.length-1][0]}`);
-                    if(this.currentOrder.points === undefined || targetX != this.currentOrder.points[this.currentOrder.points.length-1][0]){
-                        console.log(`About to compute the following order : `,this.currentOrder);
-                        this.computeMove(this.currentOrder.target.x,this.currentOrder.target.y);
-                    }
-                    logger.silly(`executing dynamic movement NOW`);
-                    this.executeMove();
+        //WARNING: dynamic movement never ends because the unit collision doesn't allow it to reach the other unit
+        case 'dynamicMovement':
+            logger.silly(`executing dynamic movement`);
+            //check if we have arrived at destination
+            let targetX = utils.pointToGrid(this.currentOrder.target.x);
+            let targetY = utils.pointToGrid(this.currentOrder.target.y);
+            if (this.gridX === targetX && this.gridY === targetY) {
+                //nullify order
+                this.clearOrder();
+            } else {
+                //check if target has moved from its grid position
+                //console.log(`target x is: ${targetX}`);
+                //console.log(`current order last x point is: ${this.currentOrder.points[this.currentOrder.points.length-1][0]}`);
+                if (this.currentOrder.points === undefined || targetX != this.currentOrder.points[this.currentOrder.points.length - 1][0]) {
+                    console.log(`About to compute the following order : `, this.currentOrder);
+                    this.computeMove(this.currentOrder.target.x, this.currentOrder.target.y);
                 }
-                break;
+                logger.silly(`executing dynamic movement NOW`);
+                this.executeMove();
+            }
+            break;
 
-
-        }
 
     }
 }

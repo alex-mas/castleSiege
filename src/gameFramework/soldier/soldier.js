@@ -24,7 +24,7 @@ Soldier = function (game, x, y, spriteName, player, attributes, brain) {
 
     //unit implements moving and attributes
     Unit.call(this, game, x, y, spriteName, player, attributes);
-    game.add.existing(this);
+    //game.add.existing(this);
     //define its brain
     this.owner = player;
     this.brain = brain || new SoldierBrain(game, this);
@@ -32,6 +32,7 @@ Soldier = function (game, x, y, spriteName, player, attributes, brain) {
     this.status = {
 
     };
+
 
 
 }
@@ -48,6 +49,9 @@ Soldier.prototype.damageTarget = function (target, damage) {
 Soldier.prototype.attack = function (attackIndex, target) {
     let attack = this.attributes.attack[attackIndex];
     if (!attack.isOnCd && this.isInAttackRange(attackIndex, target)) {
+        console.log(this);
+        console.log('has attacked');
+        console.log(target);
         attack.isOnCd = true;
         //Handle reverting cd status after it expires
         setTimeout(() => {
@@ -87,17 +91,22 @@ Soldier.prototype.executeOrders = function () {
             case 'attack':
             logger.info(`Current order is of type attack = ${this.currentOrder}`);
                 if (this.currentOrder.done === false) {
-                    if (this.currentOrder.method === 'once') {
-                        this.attack(currentOrder.attack, currentOrder.target);
-                        this.currentOrder.done = true;
-
-                    } else if (currentOrder.method === 'multiple') {
-                        if(this.isInAttackRange(currentOrder.attack, currentOrder.target)){
+                    if(this.currentOrder.target.alive){
+                        if (this.currentOrder.method === 'once') {
                             this.attack(currentOrder.attack, currentOrder.target);
-                        }else{
                             this.currentOrder.done = true;
+    
+                        } else if (this.currentOrder.method === 'multiple') {
+                            if(this.isInAttackRange(this.currentOrder.attack, this.currentOrder.target)){
+                                this.attack(this.currentOrder.attack, this.currentOrder.target);
+                            }else{
+                                this.currentOrder.done = true;
+                            }
                         }
+                    }else{
+                        this.currentOrder.done = true;
                     }
+
                 }else{
                     //nullify order so unit can assign next order
                     this.currentOrder = undefined;
@@ -115,9 +124,11 @@ Soldier.prototype.executeOrders = function () {
 
 
 Soldier.prototype.update = function () {
-    Unit.prototype.update.call(this);
-    this.brain.update(0);
-
+    if(this.alive){
+        Unit.prototype.update.call(this);
+        this.brain.update(0);
+    }
+    
 }
 
 

@@ -87,6 +87,7 @@ function create() {
         'king', 
         'AI', 
         {
+        health: 50,
         ms: 50,
         damage: 30,
         attack: [{
@@ -104,6 +105,7 @@ function create() {
         'knight_red',
         'no-one',
         {
+            health: 100,
             ms: 50,
             damage: 30,
             attack: [{
@@ -112,15 +114,16 @@ function create() {
                 damage: 10,
                 range: 150
             }]
-        },
+            }
     );
     var soldier3 = new gameFramework.Soldier(
         game,
         800,
         1000,
         'knight_blue',
-        'no-one2',
+        'AI2',
         {
+            health: 100,
             ms: 50,
             damage: 30,
             attack: [{
@@ -129,13 +132,12 @@ function create() {
                 damage: 10,
                 range: 150
             }]
-        },
+            }
     );
 }
 
 
 function update() {
-
 }
 
 function render() {

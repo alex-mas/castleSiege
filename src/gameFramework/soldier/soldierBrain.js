@@ -33,11 +33,10 @@ SoldierBrain.prototype.searchForEnemies = function () {
             logger.silly(`GameObject: ${gameObject} is an instance of Unit`);
             //TODO: implement check if the other team is actually unfriendly
             if (gameObject.owner !== this.host.owner) {
-                enemies.push(gameObject);
+                if(gameObject.alive){
+                    enemies.push(gameObject);
+                }
             }
-            /*if(gameObject.owner.team !== this.owner.team){
-                //order to attack
-            }*/
         }
     });
     return enemies;

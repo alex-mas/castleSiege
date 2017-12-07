@@ -43,6 +43,10 @@ Pawn = function (game, x, y, spriteName, player, attributes) {
     this.attributes = undefined;
     if(attributes){
         this.attributes = attributes;
+        if(attributes.health){
+            this.maxHealth = attributes.health;
+            this.setHealth(this.maxHealth);
+        }
     }else{
         this.attributes.ms = 50;
     }

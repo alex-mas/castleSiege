@@ -1,25 +1,51 @@
+const logger = require('../../dev_modules/logger.js');
+const utils = require('./../utils/utils.js');
 window.PIXI = require('phaser-ce/build/custom/pixi');
 window.p2 = require('phaser-ce/build/custom/p2');
 window.Phaser = require('phaser-ce/build/custom/phaser-split');
+const Brain = require('../brain/brain.js');
 
 
 
-//custom class that extends from Phaser.Sprite
-Pawn = function (game, x, y, spriteName, owner, ms) {
+
+/**
+ * @namespace GameFramework
+ * @name Pawn
+ * @class Pwan
+ * @classdesc Extends sprite class to provide integration with a body and some basic movement related utility methods
+ * @extends {Phaser.Sprite}
+ * @param {Phaser.Game} game - reference to the game where the pawn is being created
+ * @param {Number} x - x position where the pawn will be created
+ * @param {Number} y  -y position where the pawn will be created
+ * @param {String} spriteName - string name of a saved texture
+ * @param {Player} owner - player game object representing the owner player
+ * @param {Number} ms  - number that denotes how fast does the unit move
+ */
+Pawn = function (game, x, y, spriteName, player, attributes) {
     //parent constructor
     //  We call the Phaser.Sprite passing in the game reference
     Phaser.Sprite.call(this, game, x, y, spriteName);
-
     game.add.existing(this);
+    game.physics.p2.enable(this,true);
 
-    //TODO: Make an AI Brain class to implement the logic and then inport it into units via the owner argument
-    this.owner = owner;
+    //set the owner of the unit
+    if (player) {
+        this.owner = player;
+    } else {
+        this.owner = 'defaultAI';
+    }
+    
 
     //grid position attributes and methods
     this.setGridPosition();
 
     //general attributes
-    this.ms = ms || 50;
+    this.attributes = undefined;
+    if(attributes){
+        this.attributes = attributes;
+    }else{
+        this.attributes.ms = 50;
+    }
 
 };
 
@@ -32,27 +58,27 @@ Pawn.prototype.constructor = Pawn;
 Pawn.prototype.setGridPosition = function () {
     //grids are 64 pixels wide
     //divide for gride size and truncate with bitwise operation
-    this.gridX = (this.x / 64) | 0;
-    this.gridY = (this.y / 64) | 0;
+    this.gridX = utils.pointToGrid(this.x);
+    this.gridY = utils.pointToGrid(this.y);
 };
 
 
 /* Basic movement functions */
-Pawn.prototype.move = function (xDir,yDir){
-        if(xDir === 'left'){
-            this.body.moveLeft(this.ms);
-        }else if (xDir === 'right'){
-            this.body.moveRight(this.ms);
-        }
-        if(yDir === 'up'){
-            this.body.moveUp(this.ms);
-        }else if(yDir = 'down'){
-            this.body.moveDown(this.ms);
-        }
+Pawn.prototype.move = function (xDir, yDir) {
+    if (xDir === 'left') {
+        this.body.moveLeft(this.attributes.ms);
+    } else if (xDir === 'right') {
+        this.body.moveRight(this.attributes.ms);
+    }
+    if (yDir === 'up') {
+        this.body.moveUp(this.attributes.ms);
+    } else if (yDir = 'down') {
+        this.body.moveDown(this.attributes.ms);
+    }
 
 }
 
-Pawn.prototype.stop = function (){
+Pawn.prototype.stop = function () {
     this.body.velocity.x = 0;
     this.body.velocity.y = 0;
 }

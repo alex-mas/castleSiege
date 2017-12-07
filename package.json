@@ -9,11 +9,13 @@
   "homepage": "",
   "main": "app/main.js",
   "build": {
-    "appId": "com.example.electron-boilerplate",
+    "appId": "com.electron.CastleSiege",
     "files": [
       "app/**/*",
       "node_modules/**/*",
-      "package.json"
+      "package.json",
+      "resources/structures/*",
+      "resources/tiles/*"
     ],
     "directories": {
       "buildResources": "resources"

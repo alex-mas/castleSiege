@@ -92,8 +92,8 @@ function create() {
         attack: [{
             isOnCd: false,
             cd: 250,
-            attackDamage: 10,
-            attackRange: 150
+            damage: 10,
+            range: 150
         }]
         }
     );
@@ -109,8 +109,8 @@ function create() {
             attack: [{
                 isOnCd: false,
                 cd: 250,
-                attackDamage: 10,
-                attackRange: 150
+                damage: 10,
+                range: 150
             }]
         },
     );
@@ -126,8 +126,8 @@ function create() {
             attack: [{
                 isOnCd: false,
                 cd: 250,
-                attackDamage: 10,
-                attackRange: 150
+                damage: 10,
+                range: 150
             }]
         },
     );

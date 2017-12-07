@@ -1,4 +1,3 @@
-
 const logger = require('../../dev_modules/logger.js');
 const pf = require('pathfinding');
 const Pawn = require('../pawn/pawn.js');
@@ -205,51 +204,53 @@ Unit.prototype.concludeOrder = function () {
  * @returns {nothing}
  */
 Unit.prototype.executeOrders = function () {
-    let currentOrder = this.currentOrder;
     //logger.debug(`currentOrder is: ${JSON.stringify(this.currentOrder)}`);
     //logger.debug(`Orders are: ${JSON.stringify(this.orders)}`);
-    if (currentOrder === undefined) {
+    if (!this.currentOrder) {
+        console.log('order is undefined');
         //check if the order queue has elements
         if (this.orders[0] !== undefined) {
             logger.info(`Executing unit change of orders`);
             //give the pawn its next order
-            logger.info(`Before splicing orders current order is : {type:${currentOrder}}`);
-            currentOrder = this.orders[0];
+            logger.info(`Before splicing orders current order is : {type:${this.currentOrder}}`);
+            this.currentOrder= this.orders[0];
             //console.log('Order queue: ',this.orders);
-            console.log(`There are pending orders, assigning the following order: `,currentOrder);
-            console.log(`The points to move to are : ${currentOrder.points}`);
+            console.log(`There are pending orders, assigning the following order: `,this.currentOrder);
+            console.log(`The points to move to are : ${this.currentOrder.points}`);
+            
         }else{
             //console.log('returning');
             return;
         }
         
-    } else {
+    }
+    if(true) {
         console.log('order is not undefined');
         //Check each possible case and perform its appropiate action either do nothing.
-        switch (currentOrder.type) {
+        switch (this.currentOrder.type) {
             case 'staticMovement':
-                if (currentOrder.computed) {
+                if (this.currentOrder.computed) {
                     this.executeMove();
                 } else {
-                    this.computeMove(currentOrder.x, currentOrder.y);
+                    this.computeMove(this.currentOrder.x, this.currentOrder.y);
                 }
             break;
             //WARNING: dynamic movement never ends because the unit collision doesn't allow it to reach the other unit
             case 'dynamicMovement':
                 logger.silly(`executing dynamic movement`);
                 //check if we have arrived at destination
-                let targetX = utils.pointToGrid(currentOrder.target.x);
-                let targetY = utils.pointToGrid(currentOrder.target.y);
+                let targetX = utils.pointToGrid(this.currentOrder.target.x);
+                let targetY = utils.pointToGrid(this.currentOrder.target.y);
                 if(this.gridX === targetX && this.gridY === targetY){
                     //nullify order
                     this.clearOrder();
                 }else{
                     //check if target has moved from its grid position
-                   // console.log(`target x is: ${targetX}`);
-                    //console.log(`current order last x point is: ${currentOrder.points[currentOrder.points.length-1][0]}`);
-                    if(currentOrder.points === undefined || targetX != currentOrder.points[currentOrder.points.length-1][0]){
-                        console.log(`About to compute the following order : `,currentOrder);
-                        this.computeMove(currentOrder.target.x,currentOrder.target.y);
+                   //console.log(`target x is: ${targetX}`);
+                    //console.log(`current order last x point is: ${this.currentOrder.points[this.currentOrder.points.length-1][0]}`);
+                    if(this.currentOrder.points === undefined || targetX != this.currentOrder.points[this.currentOrder.points.length-1][0]){
+                        console.log(`About to compute the following order : `,this.currentOrder);
+                        this.computeMove(this.currentOrder.target.x,this.currentOrder.target.y);
                     }
                     logger.silly(`executing dynamic movement NOW`);
                     this.executeMove();

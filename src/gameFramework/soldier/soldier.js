@@ -56,7 +56,7 @@ Soldier.prototype.attack = function (attackIndex, target) {
         //play animation
         //wait for the callback where the animation hits the target
         //apply the damage to the target life
-        this.damageTarget(target, attack.attackDamage);
+        this.damageTarget(target, attack.damage);
     }
 }
 
@@ -65,7 +65,7 @@ Soldier.prototype.isInAttackRange = function (attackIndex, entity) {
     let dx = entity.x - this.x,
         dy = entity.y - this.y,
         distance = Math.sqrt(dx ** 2 + dy ** 2);
-    if (distance <= attack.attackRange) {
+    if (distance <= attack.range) {
         return true
     } else {
         return false

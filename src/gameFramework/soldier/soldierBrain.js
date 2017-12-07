@@ -70,11 +70,11 @@ SoldierBrain.prototype.orderAttack = function (attackIndex, target) {
 //TODO: Create basic AI for soldiers, namely, look for enemies in game grid and order move to their position
 SoldierBrain.prototype.update = function (context) {
     //call base brain class
-    /*Brain.prototype.update.call(this,context);*/
+    Brain.prototype.update.call(this,context);
     //class specific behaviour
     //TODO: remove hardcoded behaviour.
-    let enemies = this.searchForEnemies();
     if (this.host.orders.length < 1) {
+        let enemies = this.searchForEnemies();
         if (enemies.length > 0) {
             let enemy = this.chooseTarget(enemies);
             let maximumDamage = 0;
@@ -82,6 +82,7 @@ SoldierBrain.prototype.update = function (context) {
             for(let i = 0; i < this.host.attributes.attack.length; i++){
                 logger.debug(`inside loop to choose attack`);
                 let thisAttack = this.host.attributes.attack[i];
+                logger.debug(`this attack is `, thisAttack);
                 if(this.host.isInAttackRange(i,enemy)){
                     logger.debug(`attack is in range`);
                     if(thisAttack.damage > maximumDamage){

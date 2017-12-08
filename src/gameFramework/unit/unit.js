@@ -15,9 +15,6 @@ const utils = require('../utils/utils.js');
  * @param {Object} attributes  - object that holds all attributes that might want to be specified for the instantianted unit
  */
 Unit = function (game, x, y, spriteName, player, attributes) {
-    logger.debug('created unit');
-    logger.info(`unit attributes: ${JSON.stringify(attributes)}`);
-
     //parent constructor
     if (attributes) {
         Pawn.call(this, game, x, y, spriteName, player, attributes);
@@ -77,7 +74,7 @@ Unit.prototype.executeMove = function () {
         logger.debug(`Unit grid y position is : ${this.gridY}`);
         logger.debug(`next move is going to x grid coordinates: ${nextMoveStep[0]}`);
         logger.debug(`next move is going to Y grid coordinates: ${nextMoveStep[1]}`);
-        //logger.debug(`Pathing at next point is', ${this.game.grid.collisionGrid[nextMoveStep[0]][nextMoveStep[1]]}`);
+        logger.debug(`Pathing at next point is:  ${this.game.grid.collisionGrid[nextMoveStep[1]][nextMoveStep[0]]}`);
 
         //check if the pawn is inside the grid coordinates of the next point
         if (this.gridX === nextMoveStep[0] && this.gridY === nextMoveStep[1]) {
@@ -207,16 +204,16 @@ Unit.prototype.executeOrders = function () {
     //logger.debug(`Orders are: ${JSON.stringify(this.orders)}`);
     //logger.silly(`current order is: `, this.currentOrder);
     if (!this.currentOrder) {
-        console.log('order is undefined');
         //check if the order queue has elements
         if (this.orders[0] !== undefined) {
             logger.info(`Executing unit change of orders`);
             //give the pawn its next order
-            logger.info(`Before splicing orders current order is : {type:${this.currentOrder}}`);
             //WARNING: we keep the original order of the array intact, that is, we might just stay in a bucle giving ourselves the same order over and over
+            //TODO: decide if we splice it on each order bases or we do it centralized here and if we do it here try to make the change without breaking the code
             this.currentOrder = this.orders[0];
             //console.log('Order queue: ',this.orders);
             console.log(`There are pending orders, assigning the following order: `, this.currentOrder);
+            console.log(`This unit team is: `, this.owner);
             console.log(`The points to move to are : ${this.currentOrder.points}`);
 
         } else {
@@ -237,7 +234,6 @@ Unit.prototype.executeOrders = function () {
             break;
         //WARNING: dynamic movement never ends because the unit collision doesn't allow it to reach the other unit
         case 'dynamicMovement':
-            logger.silly(`executing dynamic movement`);
             //check if we have arrived at destination
             let targetX = utils.pointToGrid(this.currentOrder.target.x);
             let targetY = utils.pointToGrid(this.currentOrder.target.y);
@@ -252,7 +248,6 @@ Unit.prototype.executeOrders = function () {
                     console.log(`About to compute the following order : `, this.currentOrder);
                     this.computeMove(this.currentOrder.target.x, this.currentOrder.target.y);
                 }
-                logger.silly(`executing dynamic movement NOW`);
                 this.executeMove();
             }
             break;

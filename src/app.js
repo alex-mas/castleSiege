@@ -136,43 +136,43 @@ function create() {
     );*/
     let team1 = [];
     let team2 = [];
-    for(let i = 0; i<10; i++){
-        team1.push(new gameFramework.Soldier(
-            game,
-            32,
-            32+64*i,
-            'knight_blue',
-            'team_1',
-            {
-                health: 100,
-                ms: 50,
-                damage: 30,
-                attack: [{
-                    isOnCd: false,
-                    cd: 250,
-                    damage: 10,
-                    range: 150
-                }]
-            }
-        ));
+    for(let i = 0; i<20; i++){
         team2.push(new gameFramework.Soldier(
             game,
-            window.innerWidth-32,
-            32+64*i,
+            32,
+            
+            32+32*i,
             'knight_red',
             'team_2',
             {
                 health: 100,
-                ms: 50,
-                damage: 30,
+                ms: 85,
                 attack: [{
                     isOnCd: false,
                     cd: 250,
-                    damage: 10,
-                    range: 150
+                    damage: 25,
+                    range: 100
                 }]
             }
         ));
+        team1.push(new gameFramework.Soldier(
+            game,
+            window.innerWidth-32,
+            32+32*i,
+            'knight_blue',
+            'team_1',
+            {
+                health: 150,
+                ms: 85,
+                attack: [{
+                    isOnCd: false,
+                    cd: 250,
+                    damage: 25,
+                    range: 100
+                }]
+            }
+        ));
+
     }
 
 }

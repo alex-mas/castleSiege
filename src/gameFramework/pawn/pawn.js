@@ -26,7 +26,7 @@ Pawn = function (game, x, y, spriteName, player, attributes) {
     //  We call the Phaser.Sprite passing in the game reference
     Phaser.Sprite.call(this, game, x, y, spriteName);
     game.add.existing(this);
-    game.physics.p2.enable(this,true);
+    game.physics.p2.enable(this);
 
     //set the owner of the unit
     if (player) {

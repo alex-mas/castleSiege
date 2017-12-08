@@ -43,9 +43,28 @@ SoldierBrain.prototype.searchForEnemies = function () {
 
 }
 
-//TODO: implement range and strength check to go for closest and weakest target
+//TODO: implement strength check to go for closest and weakest target
 SoldierBrain.prototype.chooseTarget = function (enemies) {
-    return enemies[0];
+    //fallback optimal target
+    let optimalTarget = enemies[0];
+    let minimumDistance = undefined;
+    //loop all enemies and save the closest target on memory
+    for(let i = 0; i < enemies.length; i++){
+        let enemy = enemies[i];
+        let distance = Math.sqrt((enemy.x-this.x)**2+(enemy.y-this.y)**2);
+        if(minimumDistance === undefined){
+            minimumDistance = distance;
+            optimalTarget = enemy;
+            continue;
+        }
+        if(distance < minimumDistance){
+            minimumDistance = distance;
+            optimalTarget = enemy;
+        }
+    }
+    console.log('about to return the closest target');
+    //return closest target
+    return optimalTarget;
 }
 
 //TODO: implement

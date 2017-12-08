@@ -93,7 +93,7 @@ Soldier.prototype.executeOrders = function () {
                 if (this.currentOrder.done === false) {
                     if(this.currentOrder.target.alive){
                         if (this.currentOrder.method === 'once') {
-                            this.attack(currentOrder.attack, currentOrder.target);
+                            this.attack(this.currentOrder.attack, this.currentOrder.target);
                             this.currentOrder.done = true;
     
                         } else if (this.currentOrder.method === 'multiple') {
@@ -104,12 +104,13 @@ Soldier.prototype.executeOrders = function () {
                             }
                         }
                     }else{
-                        this.currentOrder.done = true;
+                        //nullify order so unit can assign next order
+                        this.clearOrder();
                     }
 
                 }else{
                     //nullify order so unit can assign next order
-                    this.currentOrder = undefined;
+                    this.clearOrder();
                 }
 
                 break;

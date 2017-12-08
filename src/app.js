@@ -80,7 +80,7 @@ function paintWorldGround() {
 function create() {
     game.physics.startSystem(Phaser.Physics.P2JS);
     paintWorldGround();
-    var soldier = new gameFramework.Soldier(
+  /*  var soldier = new gameFramework.Soldier(
         game, 
         0, 
         0, 
@@ -132,9 +132,51 @@ function create() {
                 damage: 10,
                 range: 150
             }]
+        }
+    );*/
+    let team1 = [];
+    let team2 = [];
+    for(let i = 0; i<10; i++){
+        team1.push(new gameFramework.Soldier(
+            game,
+            32,
+            32+64*i,
+            'knight_blue',
+            'team_1',
+            {
+                health: 100,
+                ms: 50,
+                damage: 30,
+                attack: [{
+                    isOnCd: false,
+                    cd: 250,
+                    damage: 10,
+                    range: 150
+                }]
             }
-    );
+        ));
+        team2.push(new gameFramework.Soldier(
+            game,
+            window.innerWidth-32,
+            32+64*i,
+            'knight_red',
+            'team_2',
+            {
+                health: 100,
+                ms: 50,
+                damage: 30,
+                attack: [{
+                    isOnCd: false,
+                    cd: 250,
+                    damage: 10,
+                    range: 150
+                }]
+            }
+        ));
+    }
+
 }
+
 
 
 function update() {

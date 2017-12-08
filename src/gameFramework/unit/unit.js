@@ -77,7 +77,7 @@ Unit.prototype.executeMove = function () {
         logger.debug(`Unit grid y position is : ${this.gridY}`);
         logger.debug(`next move is going to x grid coordinates: ${nextMoveStep[0]}`);
         logger.debug(`next move is going to Y grid coordinates: ${nextMoveStep[1]}`);
-        logger.debug(`Pathing at next point is', ${this.game.grid.collisionGrid[nextMoveStep[0]][nextMoveStep[1]]}`);
+        //logger.debug(`Pathing at next point is', ${this.game.grid.collisionGrid[nextMoveStep[0]][nextMoveStep[1]]}`);
 
         //check if the pawn is inside the grid coordinates of the next point
         if (this.gridX === nextMoveStep[0] && this.gridY === nextMoveStep[1]) {
@@ -213,6 +213,7 @@ Unit.prototype.executeOrders = function () {
             logger.info(`Executing unit change of orders`);
             //give the pawn its next order
             logger.info(`Before splicing orders current order is : {type:${this.currentOrder}}`);
+            //WARNING: we keep the original order of the array intact, that is, we might just stay in a bucle giving ourselves the same order over and over
             this.currentOrder = this.orders[0];
             //console.log('Order queue: ',this.orders);
             console.log(`There are pending orders, assigning the following order: `, this.currentOrder);

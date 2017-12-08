@@ -24,7 +24,7 @@ const warnConsole = new winston.transports.Console({
 });
 
 //uncoment the following line to allow extensive logging
-env.name = "developmentBugChasing";
+//env.name = "developmentBugChasing";
 
 if (env.name === "development") {
     //development specific logic

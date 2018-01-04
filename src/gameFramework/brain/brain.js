@@ -18,9 +18,8 @@ Brain = function(game,host,owner){
     this.owner = owner;
 };
 
-//TODO: Wire it up with unit order system
+//orders its host to move to a fixed spot
 Brain.prototype.orderStaticMove = function (x, y) {
-    logger.debug(`Ordering static move`);
     //add the order to its host.
     this.host.orders.push({
         type: 'staticMovement',
@@ -31,8 +30,9 @@ Brain.prototype.orderStaticMove = function (x, y) {
     });
 };
 
+
+//orders the host to move to a target that might move
 Brain.prototype.orderDynamicMove = function(target){
-    logger.debug(`Ordering dynamic move`);
     //add the order to its host
     this.host.orders.push({
         type: 'dynamicMovement',
@@ -43,11 +43,8 @@ Brain.prototype.orderDynamicMove = function(target){
 }
 
 
-
-//TODO: wire up an update method so the engine automaticly calls it each frame --> call it from its host update method?
 Brain.prototype.update = function(context){
 
-    
     
 }
 

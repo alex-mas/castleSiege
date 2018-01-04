@@ -20,13 +20,10 @@ const SoldierBrain = require('./soldierBrain');
  * @param {Player} player - reference to the player that owns this unit
  */
 Soldier = function (game, x, y, spriteName, player, attributes, brain) {
-    logger.debug(`Soldier attributes: ${attributes}`);
-
     //unit implements moving and attributes
     Unit.call(this, game, x, y, spriteName, player, attributes);
-    //game.add.existing(this);
+    
     //define its brain
-    this.owner = player;
     this.brain = brain || new SoldierBrain(game, this);
     //container object for data that affects the unit such as debuffs, etc...
     this.status = {
@@ -45,13 +42,9 @@ Soldier.prototype.damageTarget = function (target, damage) {
     target.damage(damage);
 }
 
-//TODO: Make sure soldiers are initialized with the proper data structure inside attributes
 Soldier.prototype.attack = function (attackIndex, target) {
     let attack = this.attributes.attack[attackIndex];
     if (!attack.isOnCd && this.isInAttackRange(attackIndex, target)) {
-        console.log(this);
-        console.log('has attacked');
-        console.log(target);
         attack.isOnCd = true;
         //Handle reverting cd status after it expires
         setTimeout(() => {
@@ -64,10 +57,10 @@ Soldier.prototype.attack = function (attackIndex, target) {
     }
 }
 
-Soldier.prototype.isInAttackRange = function (attackIndex, entity) {
+Soldier.prototype.isInAttackRange = function (attackIndex, target) {
     let attack = this.attributes.attack[attackIndex];
-    let dx = entity.x - this.x,
-        dy = entity.y - this.y,
+    let dx = target.x - this.x,
+        dy = target.y - this.y,
         distance = Math.sqrt(dx ** 2 + dy ** 2);
     if (distance <= attack.range) {
         return true
@@ -83,13 +76,9 @@ Soldier.prototype.isInAttackRange = function (attackIndex, entity) {
 Soldier.prototype.executeOrders = function () {
     Unit.prototype.executeOrders.call(this);
     if (this.currentOrder !== undefined) {
-        if(this.currentOrder.type === 'attack'){
-            logger.info(`We will execute attack order`);
-        }
         //Check each possible case and perform its appropiate action either do nothing.
         switch (this.currentOrder.type) {
             case 'attack':
-            logger.info(`Current order is of type attack = ${this.currentOrder}`);
                 if (this.currentOrder.done === false) {
                     if(this.currentOrder.target.alive){
                         if (this.currentOrder.method === 'once') {
@@ -115,7 +104,6 @@ Soldier.prototype.executeOrders = function () {
 
                 break;
             default:
-                logger.debug(`Order of type ${this.currentOrder.type} doesn't mach any valid option for soldier`);
                 break;
         }
 

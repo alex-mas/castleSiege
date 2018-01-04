@@ -4,6 +4,8 @@ window.PIXI = require('phaser-ce/build/custom/pixi');
 window.p2 = require('phaser-ce/build/custom/p2');
 window.Phaser = require('phaser-ce/build/custom/phaser-split');
 const Brain = require('../brain/brain.js');
+const Player = require('../player/player.js');
+const PlayerType = require('../global_variables/enums/playerType.js');
 
 
 
@@ -11,7 +13,7 @@ const Brain = require('../brain/brain.js');
 /**
  * @namespace GameFramework
  * @name Pawn
- * @class Pwan
+ * @typedef {Phaser.Sprite} Pawn
  * @classdesc Extends sprite class to provide integration with a body and some basic movement related utility methods
  * @extends {Phaser.Sprite}
  * @param {Phaser.Game} game - reference to the game where the pawn is being created
@@ -32,7 +34,7 @@ Pawn = function (game, x, y, spriteName, player, attributes) {
     if (player) {
         this.owner = player;
     } else {
-        this.owner = 'defaultAI';
+        this.owner = new Player('defaultAI',PlayerType.IDLE_AI);
     }
     
 

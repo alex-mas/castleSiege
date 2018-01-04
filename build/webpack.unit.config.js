@@ -10,7 +10,7 @@ const tempDir = jetpack.cwd("temp");
 const entryFilePath = tempDir.path("specs_entry.js");
 
 const entryFileContent = srcDir
-  .find({ matching: "*.spec.js" })
+  .find({ matching: "*.test.js" })
   .reduce((fileContent, path) => {
     const normalizedPath = path.replace(/\\/g, "/");
     return `${fileContent}import "../src/${normalizedPath}";\n`;

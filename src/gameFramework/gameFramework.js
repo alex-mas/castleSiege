@@ -1,8 +1,11 @@
-require('./pawn/pawn.js');
-require('./unit/unit.js');
-require('./brain/brain.js');
-require('./soldier/soldierBrain.js');
-require('./soldier/soldier.js');
+const Pawn = require('./pawn/pawn.js');
+const Unit = require('./unit/unit.js');
+const Brain = require('./brain/brain.js');
+const SoldierBrain = require('./soldier/soldierBrain.js');
+const Soldier = require('./soldier/soldier.js');
+const globalVars = require('./global_variables/globals.js');
+const Player = require('./player/player.js');
+const Team = require('./team/team.js');
 
 //TODO: Perform unit tests on individual classes
 //TODO: Document classes
@@ -13,5 +16,19 @@ module.exports = {
     Unit,
     Brain,
     Soldier,
-    SoldierBrain  
+    SoldierBrain,
+    Player,
+    Team
 };
+
+// glb stands for shorthand global
+for (let glb in globalVars) {
+    if (globalVars.hasOwnProperty(glb)){
+        if(module.exports[glb]){
+            throw new Error(`Namespace clash ocurred while bootstraping ${glb} into gameFramework object`);
+        }else{
+            module.exports[glb] = globalVars[glb];
+        }
+        
+    }   
+}

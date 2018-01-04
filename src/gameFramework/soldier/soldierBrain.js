@@ -4,6 +4,7 @@ window.p2 = require('phaser-ce/build/custom/p2');
 window.Phaser = require('phaser-ce/build/custom/phaser-split');
 const Unit = require('../unit/unit.js');
 const Brain = require('../brain/brain.js');
+const Team = require('../team/team.js');
 
 
 //TODO: Implement one brain for multiple units
@@ -25,20 +26,21 @@ SoldierBrain = function (game, host, owner) {
 SoldierBrain.prototype = Object.create(Brain.prototype);
 SoldierBrain.prototype.constructor = SoldierBrain;
 
-//TODO: implement
+
 SoldierBrain.prototype.searchForEnemies = function () {
     let enemies = [];
-    this.game.world.forEach((gameObject) => {
-        if (gameObject instanceof Unit) {
-            logger.silly(`GameObject: ${gameObject} is an instance of Unit`);
-            //TODO: implement check if the other team is actually unfriendly
-            if (gameObject.owner !== this.host.owner) {
-                if(gameObject.alive){
-                    enemies.push(gameObject);
-                }
+    let unitsArray = this.game._LOCALGAME.units;
+    for (var i = 0; i < unitsArray.length; i++) {
+        let gameObject = unitsArray[i];
+        if (gameObject.owner.team.isEnemyOf(this.host.owner.team)) {
+            //TODO: Find out why the fuck does this function get called 450 times
+            console.warn('we are being called too many fucking times');
+            if (gameObject.alive) {
+                enemies.push(gameObject);
             }
         }
-    });
+
+    }
     return enemies;
 
 }
@@ -47,29 +49,22 @@ SoldierBrain.prototype.searchForEnemies = function () {
 SoldierBrain.prototype.chooseTarget = function (enemies) {
     //fallback optimal target
     let optimalTarget = enemies[0];
-    let minimumDistance = undefined;
+    let minimumDistance = 90000;
     //loop all enemies and save the closest target on memory
-    for(let i = 0; i < enemies.length; i++){
+    for (var i = 0; i < enemies.length; i++) {
         let enemy = enemies[i];
-        let distance = Math.sqrt((enemy.x-this.x)**2+(enemy.y-this.y)**2);
-        if(minimumDistance === undefined){
-            minimumDistance = distance;
-            optimalTarget = enemy;
-            continue;
-        }
-        if(distance < minimumDistance){
+        let distance = Math.sqrt((enemy.x - this.x) ** 2 + (enemy.y - this.y) ** 2);
+        if (distance < minimumDistance) {
             minimumDistance = distance;
             optimalTarget = enemy;
         }
     }
-    console.log('about to return the closest target');
     //return closest target
     return optimalTarget;
 }
 
-//TODO: implement
+//orders its host to attack the target multiple times until it dies or goes out of range
 SoldierBrain.prototype.orderAttack = function (attackIndex, target) {
-    logger.info(`Ordering attack move`);
     this.host.orders.push({
         type: 'attack',
         method: 'multiple',
@@ -81,54 +76,73 @@ SoldierBrain.prototype.orderAttack = function (attackIndex, target) {
 
 
 /**
- * 
- * @todo the problem is that you only give one order ignoring that your target might move, fix it.
+ * @todo - Inspect script execution data to determine if its soldierBrain, soldier or unit movements that are creating the bottleneck
+ * @todo - Problem regarding the static nature of the current targeting system.
+ * @todo - Performance problems, script execution throtles in this zone, remove logging and try to optimize code (async+multithreading?)
  */
 //executed on game loop, determines the course of action given a context
-//TODO: Create basic AI for soldiers, namely, look for enemies in game grid and order move to their position
 SoldierBrain.prototype.update = function (context) {
     //call base brain class
-    Brain.prototype.update.call(this,context);
+    Brain.prototype.update.call(this, context);
     //class specific behaviour
     //TODO: remove hardcoded behaviour.
     if (this.host.orders.length < 1) {
-        let enemies = this.searchForEnemies();
+        const enemies = this.searchForEnemies();
         if (enemies.length > 0) {
-            let enemy = this.chooseTarget(enemies);
+            const enemy = this.chooseTarget(enemies);
             let maximumDamage = 0;
             let optimalAttack = undefined;
-            for(let i = 0; i < this.host.attributes.attack.length; i++){
-                logger.debug(`inside loop to choose attack`);
+            for (let i = 0; i < this.host.attributes.attack.length; i++) {
                 let thisAttack = this.host.attributes.attack[i];
-                logger.debug(`this attack is `, thisAttack);
-                if(this.host.isInAttackRange(i,enemy)){
-                    logger.debug(`attack is in range`);
-                    if(thisAttack.damage > maximumDamage){
+                if (this.host.isInAttackRange(i, enemy)) {
+                    if (thisAttack.damage > maximumDamage) {
                         maximumDamage = thisAttack.damage;
                         optimalAttack = i;
                     }
                 }
             }
-            if(optimalAttack !== undefined){
-                logger.debug(`We should order attack now`);
-                console.log(`Enemy is: `,enemy);
+            if (optimalAttack !== undefined) {
                 this.orderAttack(optimalAttack, enemy);
-            }else{
-                logger.debug(`We should order a dynamic move now`);
-                logger.debug(`this x: ${this.host.x}, this y: ${this.host.y}`);
-                logger.debug(`Enemy x: ${enemy.x}, Enemy y: ${enemy.y}`);
+            } else {
                 this.orderDynamicMove(enemy);
             }
         } else {
-            logger.debug(`We should order a static move`);
-            let x = Math.random() * window.innerWidth - 32,
+            const x = Math.random() * window.innerWidth - 32,
                 y = Math.random() * window.innerHeight - 32;
             this.orderStaticMove(x, y);
         }
-        
-    }else{
+
+    } else {
+        /*
+        if (this.host.currentOrder.type === "dynamicMovement") {
+            const enemies = this.searchForEnemies();
+            if (enemies.length > 0) {
+                let enemy = this.chooseTarget(enemies);
+                if (enemy !== this.host.currentOrder.target) {
+                    let maximumDamage = 0;
+                    let optimalAttack = undefined;
+                    for (let i = 0; i < this.host.attributes.attack.length; i++) {
+                        let thisAttack = this.host.attributes.attack[i];
+                        if (this.host.isInAttackRange(i, enemy)) {
+                            if (thisAttack.damage > maximumDamage) {
+                                maximumDamage = thisAttack.damage;
+                                optimalAttack = i;
+                            }
+                        }
+                    }
+                    if (optimalAttack !== undefined) {
+                        this.orderAttack(optimalAttack, enemy);
+                        this.host.clearOrder();
+                    } else {
+                        this.orderDynamicMove(enemy);
+                        this.host.clearOrder();
+                    }
+                }
+            }
+        }
+*/
     }
-    
+
 }
 
 

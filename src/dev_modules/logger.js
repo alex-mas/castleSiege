@@ -1,7 +1,6 @@
 const winston = require('winston');
 
-
-import env from "env";
+import env from 'env'
 
 const logger = winston.createLogger({
     transports: [

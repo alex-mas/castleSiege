@@ -11,7 +11,7 @@ const AI = require('../ai/ai.js');
  * @param {Team} team
  * @param {AI} Ai
  */
-Player = function(id,type,team, Ai){
+const Player = function(id,type,team, Ai){
     if(team){
         this.team = team;
         team.addMember(this);

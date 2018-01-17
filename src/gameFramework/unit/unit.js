@@ -1,5 +1,5 @@
-const logger = require('../../dev_modules/logger.js');
-const pf = require('pathfinding');
+
+const pf = require('../customPathfinding/index.js');
 const Pawn = require('../pawn/pawn.js');
 const Brain = require('../brain/brain.js');
 const utils = require('../utils/utils.js');
@@ -15,7 +15,7 @@ const Player = require('../player/player.js');
  * @param {Player} owner - String/object to identify the owner of the unit
  * @param {Object} attributes  - object that holds all attributes that might want to be specified for the instantianted unit
  */
-Unit = function (game, x, y, spriteName, player, attributes) {
+const Unit = function (game, x, y, spriteName, player, attributes) {
     //parent constructor
     if (attributes) {
         Pawn.call(this, game, x, y, spriteName, player, attributes);
@@ -43,15 +43,17 @@ Unit.prototype.constructor = Unit;
  * @param {Number} y - Grid Y number where the unit will be ordered to move
  */
 Unit.prototype.computeMove = function (x, y) {
-    var targetX = utils.pointToGrid(x),
-        targetY = utils.pointToGrid(y);
-    this.currentOrder.points = this.findPath(x, y);
-    this.currentOrder.computed = true;
+    this.currentOrder.beingComputed = true;
+    this.___timer___ = new Date();
+    this.game.__pathfinder__.distributeWork('findPath', {
+        from: [this.gridX, this.gridY],
+        to: [x,y],
+        id: this._id
+    });
 }
 
 
-//TODO: Make shorter?
-//TODO2: Think if the else logic should be put in a concludeOrder case
+
 /**
  * Function responsible for executing a move order
  */
@@ -63,9 +65,7 @@ Unit.prototype.executeMove = function () {
         if (this.gridX === nextMoveStep[0] && this.gridY === nextMoveStep[1]) {
             //remove the next point from the points array and reassign next step
             this.currentOrder.points.splice(0, 1);
-            nextMoveStep = this.currentOrder.points[0];
-        }
-        if (this.currentOrder.points.length > 0) {
+        } else {
             //iterate deciding the direction to move
             let xDir,
                 yDir;
@@ -82,11 +82,7 @@ Unit.prototype.executeMove = function () {
                 yDir = 'down'
             }
             this.move(xDir, yDir);
-        } else {
-            this.clearOrder();
         }
-
-
     } else {
         this.clearOrder();
     }
@@ -119,16 +115,30 @@ Unit.prototype.updateGrid = function () {
 
 
 
+Unit.prototype.onPathResult = function (path) {
+    //Warning: if other orders isue path computation requests we will need to account for them here
+    if (this.currentOrder &&
+        (this.currentOrder.type === 'staticMovement' ||
+        this.currentOrder.type === 'dynamicMovement')) {
+        if (path.length) {
+            this.currentOrder.points = path;
+            this.currentOrder.computed = true;
+            this.currentOrder.beingComputed = false;
+        } else {
+            this.currentOrder.beingComputed = false;
+        }
+    }
+}
 
 /**
  * 
- * @description Finds a path in a grid from the position of the unit to the target (x,y) coordinates
+ * @description Synchronously Finds a path in a grid from the position of the unit to the target (x,y) coordinates
  * @param {any} x - X position to go
  * @param {any} y - Y position to go
  * @param {any} method - Pathfinding method used to find the path
  * @returns {Array[Array[Number]} Path in terms of x,y pairs
  */
-Unit.prototype.findPath = function (x, y, method){
+Unit.prototype.findPath = function (x, y, method) {
     const targetX = utils.pointToGrid(x),
         targetY = utils.pointToGrid(y);
     let grid = this.pathfinder.grid,
@@ -141,6 +151,7 @@ Unit.prototype.findPath = function (x, y, method){
     }
     return pathArray;
 }
+
 
 Unit.prototype.clearOrders = function () {
     this.stop();
@@ -156,30 +167,33 @@ Unit.prototype.clearOrder = function () {
 }
 
 //TODO: implement - Adds the given order to the list of orders if its valid
-Unit.prototype.pushOrder = function(order) {
+Unit.prototype.pushOrder = function (order) {
+    /*
     const isValid = this.isOrderValid(order);
-    if(isValid){
+    if (isValid) {
         this.orders.push(order);
-    }else{
+    } else {
         console.warn(`Invalid order provided to ${this}`);
     }
-//TODO: validate
-this.orders.push(order);
+    */
+    //TODO: validate
+    this.orders.push(order);
 }
 
 //TODO: implement - checks for necessary characteristics of diferent order archetypes
-Unit.prototype.isOrderValid = function(order){
+Unit.prototype.isOrderValid = function (order) {
+
     let isValid = false;
-//validate
-    return isValid;
+    //validate
+    return true;
 }
 
 
 
 Unit.prototype.executeOrders = function () {
     if (!this.currentOrder) {
-        //check if the order queue has elements
         if (this.orders[0] !== undefined) {
+            //check if the order queue has elements
             //give the pawn its next order
             //WARNING: we keep the original order of the array intact, that is, we might just stay in a bucle giving ourselves the same order over and over
             //TODO: decide if we splice it on each order bases or we do it centralized here and if we do it here try to make the change without breaking the code
@@ -195,24 +209,30 @@ Unit.prototype.executeOrders = function () {
         case 'staticMovement':
             if (this.currentOrder.computed) {
                 this.executeMove();
-            } else {
+            } else if (!this.currentOrder.beingComputed) {
                 this.computeMove(this.currentOrder.x, this.currentOrder.y);
             }
             break;
         //WARNING: dynamic movement never ends because the unit collision doesn't allow it to reach the other unit
         case 'dynamicMovement':
-            //check if we have arrived at destination
             const targetX = this.currentOrder.target.gridX,
                 targetY = this.currentOrder.target.gridY;
+            //check if we have arrived at destination
             if (this.gridX === targetX && this.gridY === targetY) {
                 this.clearOrder();
             } else {
                 //check if target has moved from its grid position
-                if (this.currentOrder.points === undefined || targetX !== this.currentOrder.points[this.currentOrder.points.length - 1][0] ||
+                if (this.currentOrder.points === undefined ||
+                    targetX !== this.currentOrder.points[this.currentOrder.points.length - 1][0] ||
                     targetY !== this.currentOrder.points[this.currentOrder.points.length - 1][1]) {
-                    this.computeMove(this.currentOrder.target.x, this.currentOrder.target.y);
+                    if(!this.currentOrder.beingComputed){
+                        this.computeMove(this.currentOrder.target.x, this.currentOrder.target.y);
+                    }
                 }
-                this.executeMove();
+                if (this.currentOrder.computed) {
+                    this.executeMove();
+                }
+
             }
             break;
 
@@ -221,9 +241,8 @@ Unit.prototype.executeOrders = function () {
 }
 
 
-//TODO: determine if the unit should be destroyed with pooling
+
 Unit.prototype.update = function () {
-    //console.log('updating unit');
     Pawn.prototype.update.call(this);
     this.updateGrid();
     this.executeOrders();

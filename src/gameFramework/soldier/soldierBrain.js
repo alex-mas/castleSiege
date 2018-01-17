@@ -1,4 +1,4 @@
-const logger = require('../../dev_modules/logger.js');
+
 window.PIXI = require('phaser-ce/build/custom/pixi');
 window.p2 = require('phaser-ce/build/custom/p2');
 window.Phaser = require('phaser-ce/build/custom/phaser-split');
@@ -7,7 +7,6 @@ const Brain = require('../brain/brain.js');
 const Team = require('../team/team.js');
 
 
-//TODO: Implement one brain for multiple units
 /**
  * 
  * 
@@ -19,7 +18,7 @@ const Team = require('../team/team.js');
  * @param {Unit} host - reference to the unit that will be managed by the brain
  * @param {Player} owner -reference to the player that owns the brain
  */
-SoldierBrain = function (game, host, owner) {
+const SoldierBrain = function (game, host, owner) {
     Brain.call(this, game, host, owner);
 }
 
@@ -27,14 +26,15 @@ SoldierBrain.prototype = Object.create(Brain.prototype);
 SoldierBrain.prototype.constructor = SoldierBrain;
 
 
+
+
 SoldierBrain.prototype.searchForEnemies = function () {
     let enemies = [];
-    let unitsArray = this.game._LOCALGAME.units;
+    let unitsArray = this.game._units;
     for (var i = 0; i < unitsArray.length; i++) {
         let gameObject = unitsArray[i];
         if (gameObject.owner.team.isEnemyOf(this.host.owner.team)) {
             //TODO: Find out why the fuck does this function get called 450 times
-            console.warn('we are being called too many fucking times');
             if (gameObject.alive) {
                 enemies.push(gameObject);
             }
@@ -82,8 +82,9 @@ SoldierBrain.prototype.orderAttack = function (attackIndex, target) {
  */
 //executed on game loop, determines the course of action given a context
 SoldierBrain.prototype.update = function (context) {
-    //call base brain class
+
     Brain.prototype.update.call(this, context);
+
     //class specific behaviour
     //TODO: remove hardcoded behaviour.
     if (this.host.orders.length < 1) {
@@ -92,7 +93,7 @@ SoldierBrain.prototype.update = function (context) {
             const enemy = this.chooseTarget(enemies);
             let maximumDamage = 0;
             let optimalAttack = undefined;
-            for (let i = 0; i < this.host.attributes.attack.length; i++) {
+            for (var i = 0; i < this.host.attributes.attack.length; i++) {
                 let thisAttack = this.host.attributes.attack[i];
                 if (this.host.isInAttackRange(i, enemy)) {
                     if (thisAttack.damage > maximumDamage) {

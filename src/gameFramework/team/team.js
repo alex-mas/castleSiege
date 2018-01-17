@@ -11,7 +11,7 @@ const DiplomacyState = require('../global_variables/enums/diplomacystate.js');
  * @param {Array[Player]} initialMembers  - array of players inside the team
  * @param {Array[Array[Team, DiplomacyState]]} initialDiplomacy - array that holds arrays of 2 values, where 1st is a team and 2nd is a diplomacy state
  */
-Team = function (name, initialMembers, initialDiplomacy) {
+const Team = function (name, initialMembers, initialDiplomacy) {
     this.name = name;
     this.members = initialMembers || [];
     this.diplomacy = new Map(initialDiplomacy) || [];
@@ -19,7 +19,7 @@ Team = function (name, initialMembers, initialDiplomacy) {
 
 /* ---------------------------------------------------------------------
 
-                Methods to mutate members property
+                Methods to mutate members
 
 ----------------------------------------------------------------------*/
 

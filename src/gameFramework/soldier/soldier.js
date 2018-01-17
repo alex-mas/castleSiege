@@ -1,4 +1,4 @@
-const logger = require('../../dev_modules/logger.js');
+
 window.PIXI = require('phaser-ce/build/custom/pixi');
 window.p2 = require('phaser-ce/build/custom/p2');
 window.Phaser = require('phaser-ce/build/custom/phaser-split');
@@ -19,7 +19,7 @@ const SoldierBrain = require('./soldierBrain');
  * @param {Brain} brain - Optional parameter that gives the unit a brain(AI)
  * @param {Player} player - reference to the player that owns this unit
  */
-Soldier = function (game, x, y, spriteName, player, attributes, brain) {
+const Soldier = function (game, x, y, spriteName, player, attributes, brain) {
     //unit implements moving and attributes
     Unit.call(this, game, x, y, spriteName, player, attributes);
     
@@ -29,8 +29,6 @@ Soldier = function (game, x, y, spriteName, player, attributes, brain) {
     this.status = {
 
     };
-
-
 
 }
 

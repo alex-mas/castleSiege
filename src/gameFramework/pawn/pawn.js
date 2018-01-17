@@ -1,9 +1,8 @@
-const logger = require('../../dev_modules/logger.js');
+const id = require('uuid/v4');
 const utils = require('./../utils/utils.js');
 window.PIXI = require('phaser-ce/build/custom/pixi');
 window.p2 = require('phaser-ce/build/custom/p2');
 window.Phaser = require('phaser-ce/build/custom/phaser-split');
-const Brain = require('../brain/brain.js');
 const Player = require('../player/player.js');
 const PlayerType = require('../global_variables/enums/playerType.js');
 
@@ -23,33 +22,38 @@ const PlayerType = require('../global_variables/enums/playerType.js');
  * @param {Player} owner - player game object representing the owner player
  * @param {Number} ms  - number that denotes how fast does the unit move
  */
-Pawn = function (game, x, y, spriteName, player, attributes) {
+const Pawn = function (game, x, y, spriteName, player, attributes) {
     //parent constructor
     //  We call the Phaser.Sprite passing in the game reference
     Phaser.Sprite.call(this, game, x, y, spriteName);
     game.add.existing(this);
     game.physics.p2.enable(this);
 
-    //set the owner of the unit
+    //set the owner of the unit type checking
     if (player) {
         this.owner = player;
     } else {
-        this.owner = new Player('defaultAI',PlayerType.IDLE_AI);
+        this.owner = new Player('defaultAI', PlayerType.IDLE_AI);
     }
-    
 
-    //grid position attributes and methods
+
+    //initialize grid positions
     this.setGridPosition();
 
-    //general attributes
+
+    //id initialization
+    this._id = id();
+
+
+    //Attribute initialization
     this.attributes = undefined;
-    if(attributes){
+    if (attributes) {
         this.attributes = attributes;
-        if(attributes.health){
+        if (attributes.health) {
             this.maxHealth = attributes.health;
             this.setHealth(this.maxHealth);
         }
-    }else{
+    } else {
         this.attributes.ms = 50;
     }
 
@@ -60,13 +64,22 @@ Pawn.prototype = Object.create(Phaser.Sprite.prototype);
 Pawn.prototype.constructor = Pawn;
 
 
-//TODO: Make a method in another module to convert points to grid points
+
+
+
+
+
+/**
+ * @description - With a static square grid of 64 pixels this takes x,y position of the unit and transforms them to gird points
+ * 
+ */
 Pawn.prototype.setGridPosition = function () {
     //grids are 64 pixels wide
     //divide for gride size and truncate with bitwise operation
     this.gridX = utils.pointToGrid(this.x);
     this.gridY = utils.pointToGrid(this.y);
 };
+
 
 
 /* Basic movement functions */
@@ -84,6 +97,10 @@ Pawn.prototype.move = function (xDir, yDir) {
 
 }
 
+/**
+ * @description reset x and y velocities to 0
+ * 
+ */
 Pawn.prototype.stop = function () {
     this.body.velocity.x = 0;
     this.body.velocity.y = 0;

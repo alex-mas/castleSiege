@@ -5,7 +5,7 @@
 
 import path from "path";
 import url from "url";
-import { app, Menu } from "electron";
+import { app, Menu, BrowserWindow } from "electron";
 import { devMenuTemplate } from "./menu/dev_menu_template";
 import createWindow from "./helpers/window";
 
@@ -32,11 +32,21 @@ if (env.name !== "production") {
 
 app.on("ready", () => {
   setApplicationMenu();
-
+  const mainWindow = new BrowserWindow({
+    width: 1000,
+    height: 600,
+    webPreferences: {
+      nodeIntegrationInWorker: true
+    }
+  })
+  /* -- Method created by the boilerplate provider to save the window position and size between multiple executions--
   const mainWindow = createWindow("main", {
     width: 1000,
-    height: 600
-  });
+    height: 600,
+    webPreferences: {
+      nodeIntegrationInWorker: true
+    }
+  });*/
   mainWindow.isFullScreenable = true;
   mainWindow.maximize();
 

@@ -6,5 +6,5 @@ const AI = function(game,id,initialitzationLogic, updateLogic){
     this.game = game;
     this.atStart = initialitzationLogic;
     this.update = updateLogic;
-    
+
 }

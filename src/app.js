@@ -21,8 +21,10 @@ window.Phaser = require('phaser-ce/build/custom/phaser-split');
 //Custom game engine modules
 //TODO: Use ES6 destructuring to export relevant classes - Pay for what you use n stuff
 const gameFramework = require('./gameFramework/gameFramework.js');
-//Custom environment variables 
+//Custom environment variables
 import env from "env";
+
+
 
 let game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.AUTO, 'app', { preload: preload, create: create, update: update, render: render });
 const __srcdir = __dirname+'../src';
@@ -120,8 +122,8 @@ function create() {
 
 
     //instantiate all the units in recrangular formation
-    for (let j = 0; j < 1; j++) {
-        for (let i = 0; i < 10; i++) {
+    for (let j = 0; j < 17; j++) {
+        for (let i = 0; i < 32; i++) {
             game._units.push(new gameFramework.Soldier(
                 game,
                 32 + 32 * j,
@@ -133,7 +135,7 @@ function create() {
                     ms: 65,
                     attack: [{
                         isOnCd: false,
-                        cd: 250,
+                        cd: 750,
                         damage: 25,
                         range: 100
                     }]
@@ -146,11 +148,11 @@ function create() {
                 'axe_blue',
                 bluePlayer,
                 {
-                    health: 150,
+                    health: 100,
                     ms: 65,
                     attack: [{
                         isOnCd: false,
-                        cd: 250,
+                        cd: 750,
                         damage: 25,
                         range: 100
                     }]

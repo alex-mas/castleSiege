@@ -5,7 +5,7 @@ window.Phaser = require('phaser-ce/build/custom/phaser-split');
 const Unit = require('../unit/unit');
 const SoldierBrain = require('./soldierBrain');
 
-//TODO: Make team a own game object and extend its features -> team diplomacy, multiple players per team, etc...
+
 /**
  * @name Soldier
  * @class 

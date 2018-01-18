@@ -23,6 +23,8 @@ module.exports = {
     ThreadManager
 };
 
+
+
 // glb stands for shorthand global
 for (let glb in globalVars) {
     if (globalVars.hasOwnProperty(glb)){
@@ -31,6 +33,6 @@ for (let glb in globalVars) {
         }else{
             module.exports[glb] = globalVars[glb];
         }
-        
-    }   
+
+    }
 }

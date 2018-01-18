@@ -10,4 +10,7 @@ customPathfinding/
 
 # ignore everything in 'app' folder what had been generated from 'src' folder
 app/*
+
+
+#ignore exceptions
 !app/app.html

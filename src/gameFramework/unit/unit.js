@@ -10,7 +10,7 @@ const Player = require('../player/player.js');
  * @typedef {Pawn} Unit
  * @param {Phaser.Game} game - reference to the game where the unit is being instantiated
  * @param {Number} x - x point where the unit is being created
- * @param {Number} y - y point where the unit is being created 
+ * @param {Number} y - y point where the unit is being created
  * @param {String} spriteName - string referencing a certain sprite (sprites are stored in string variables inside Phaser)
  * @param {Player} owner - String/object to identify the owner of the unit
  * @param {Object} attributes  - object that holds all attributes that might want to be specified for the instantianted unit
@@ -37,8 +37,8 @@ Unit.prototype.constructor = Unit;
 
 
 /**
- * 
- * 
+ *
+ *
  * @param {Number} x - Grid number where the unit will be ordered to move
  * @param {Number} y - Grid Y number where the unit will be ordered to move
  */
@@ -131,7 +131,7 @@ Unit.prototype.onPathResult = function (path) {
 }
 
 /**
- * 
+ *
  * @description Synchronously Finds a path in a grid from the position of the unit to the target (x,y) coordinates
  * @param {any} x - X position to go
  * @param {any} y - Y position to go

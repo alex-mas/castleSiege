@@ -20,6 +20,7 @@ const Team = require('../team/team.js');
  */
 const SoldierBrain = function (game, host, owner) {
     Brain.call(this, game, host, owner);
+    this.__counter = 0;
 }
 
 SoldierBrain.prototype = Object.create(Brain.prototype);
@@ -53,7 +54,7 @@ SoldierBrain.prototype.chooseTarget = function (enemies) {
     //loop all enemies and save the closest target on memory
     for (var i = 0; i < enemies.length; i++) {
         let enemy = enemies[i];
-        let distance = Math.sqrt((enemy.x - this.x) ** 2 + (enemy.y - this.y) ** 2);
+        let distance = Math.sqrt((enemy.x - this.host.x) ** 2 + (enemy.y - this.host.y) ** 2);
         if (distance < minimumDistance) {
             minimumDistance = distance;
             optimalTarget = enemy;
@@ -84,6 +85,7 @@ SoldierBrain.prototype.orderAttack = function (attackIndex, target) {
 SoldierBrain.prototype.update = function (context) {
 
     Brain.prototype.update.call(this, context);
+    this.__counter++;
 
     //class specific behaviour
     //TODO: remove hardcoded behaviour.
@@ -114,7 +116,7 @@ SoldierBrain.prototype.update = function (context) {
         }
 
     } else {
-        /*
+        if(this.__counter % 280 !== 0) return;
         if (this.host.currentOrder.type === "dynamicMovement") {
             const enemies = this.searchForEnemies();
             if (enemies.length > 0) {
@@ -141,7 +143,7 @@ SoldierBrain.prototype.update = function (context) {
                 }
             }
         }
-*/
+
     }
 
 }

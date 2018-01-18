@@ -13,13 +13,14 @@ import createWindow from "./helpers/window";
 // in config/env_xxx.json file.
 import env from "env";
 
+
 const setApplicationMenu = () => {
   const menus = [];
   if (env.name !== "production") {
     menus.push(devMenuTemplate);
     Menu.setApplicationMenu(Menu.buildFromTemplate(menus));
   }
-  
+
 };
 
 // Save userData in separate folders for each environment.

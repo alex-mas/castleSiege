@@ -21,6 +21,9 @@ const Team = require('../team/team.js');
 const SoldierBrain = function (game, host, owner) {
     Brain.call(this, game, host, owner);
     this.__counter = 0;
+    this._events = {
+        REQUEST_AI_UPDATE: false
+    }
 }
 
 SoldierBrain.prototype = Object.create(Brain.prototype);
@@ -34,7 +37,7 @@ SoldierBrain.prototype.searchForEnemies = function () {
     let unitsArray = this.game._units;
     for (var i = 0; i < unitsArray.length; i++) {
         let gameObject = unitsArray[i];
-        if (gameObject.owner.team.isEnemyOf(this.host.owner.team)) {
+        if (gameObject.owner.team.isEnemyOf(this.owner.team)) {
             //TODO: Find out why the fuck does this function get called 450 times
             if (gameObject.alive) {
                 enemies.push(gameObject);
@@ -43,7 +46,80 @@ SoldierBrain.prototype.searchForEnemies = function () {
 
     }
     return enemies;
+}
 
+
+//Extract relevant data from the unit data structure
+SoldierBrain.prototype.parseUnitData = function (unit) {
+    return {
+        id: unit._id,
+        health: unit.health,
+        x: unit.x,
+        y: unit.y
+    };
+
+}
+
+SoldierBrain.prototype.searchUnits = function () {
+    let enemies = [];
+    let neutral = [];
+    let allies = [];
+    let unitsArray = this.game._units;
+    for (var i = 0; i < unitsArray.length; i++) {
+        let gameObject = unitsArray[i];
+        if (gameObject.alive) {
+            if (gameObject.owner.team.isEnemyOf(this.owner.team)) {
+                enemies.push(this.parseUnitData(gameObject));
+            } else if (gameObject.owner.team.isAllyOf(this.owner.team)) {
+                allies.push(this.parseUnitData(gameObject));
+            } else {
+                neutral.push(this.parseUnitData(gameObject));
+            }
+        }
+
+    }
+    return {
+        enemies,
+        neutral,
+        allies
+    };
+}
+
+SoldierBrain.prototype.sanitizeOrders = function(){
+    let orders = [];
+    for(let i = 0; i <this.host.orders.length; i++){
+        const order = this.host.orders[i];
+        if(order.target){
+            orders.push({
+                type: order.type,
+                target:{
+                    id: order.targetId
+                },
+                points: order.points
+            });
+        }else{
+            orders.push(order);
+        }
+    }
+    return orders;
+}
+
+SoldierBrain.prototype.getHostContext = function () {
+    return {
+        units: this.searchUnits(),
+        actor: {
+            health: this.host.health,
+            x: this.host.x,
+            y: this.host.y,
+            id: this.host._id,
+            attributes: this.host.attributes,
+            orders: this.sanitizeOrders()
+        },
+        window: {
+            height: window.innerHeight,
+            width: window.innerWidth
+        },
+    };
 }
 
 //TODO: implement strength check to go for closest and weakest target
@@ -76,6 +152,8 @@ SoldierBrain.prototype.orderAttack = function (attackIndex, target) {
 }
 
 
+
+
 /**
  * @todo - Inspect script execution data to determine if its soldierBrain, soldier or unit movements that are creating the bottleneck
  * @todo - Problem regarding the static nature of the current targeting system.
@@ -87,6 +165,24 @@ SoldierBrain.prototype.update = function (context) {
     Brain.prototype.update.call(this, context);
     this.__counter++;
 
+    /* Second iteration, event based system to communicate with AI*/
+
+    if (this.host.orders.length < 1) {
+        this._events.REQUEST_AI_UPDATE = true;
+    } else {
+        if (this.host.currentOrder &&
+            this.host.currentOrder.type === "dynamicMovement"&&
+            this.__counter % 100 !== 0
+        ) {
+            this._events.REQUEST_AI_UPDATE = true;
+        }
+    }
+    if (this._events.REQUEST_AI_UPDATE) {
+        this._events.REQUEST_AI_UPDATE = false;
+        this.owner.AI.choose('soldierAI', this.getHostContext());
+    }
+
+/*
     //class specific behaviour
     //TODO: remove hardcoded behaviour.
     if (this.host.orders.length < 1) {
@@ -116,7 +212,7 @@ SoldierBrain.prototype.update = function (context) {
         }
 
     } else {
-        if(this.__counter % 280 !== 0) return;
+        if (this.__counter % 280 !== 0) return;
         if (this.host.currentOrder.type === "dynamicMovement") {
             const enemies = this.searchForEnemies();
             if (enemies.length > 0) {
@@ -145,6 +241,7 @@ SoldierBrain.prototype.update = function (context) {
         }
 
     }
+*/
 
 }
 

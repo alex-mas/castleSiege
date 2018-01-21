@@ -1,14 +1,14 @@
-
-// implement soldier routines we want to offload to workers here via onmessage methods
-
 const pathfinder = require('../customPathfinding/index.js');
 const utils = require('../utils/utils.js');
+
+let gridData = [];
+
+let grid = {};
+
 let defaultFinder = new pathfinder.AStarFinder({
     allowDiagonal: true,
     dontCrossCorners: true
 });
-let gridData = [];
-let grid = {};
 
 onmessage = function (e) {
     const data = e.data.context;

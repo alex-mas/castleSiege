@@ -11,8 +11,8 @@ const AI = require('../ai/ai.js');
  * @param {Team} team
  * @param {AI} Ai
  */
-const Player = function(id,type,team, Ai){
-    if(team){
+const Player = function(Ai,type,id,team){
+    if(team && team instanceof Team){
         this.team = team;
         team.addMember(this);
     }else{
@@ -21,16 +21,28 @@ const Player = function(id,type,team, Ai){
     //TODO: generate a new ID for each player
     this._id = id || 'defaultId';
     this.type = type || PlayerType.HUMAN;
-    if(this.type === PlayerType.AI){
-        if(Ai){
+    if(type === PlayerType.AI){
+        if(Ai instanceof AI){
+            Ai.managePlayer(this);
             this.AI = Ai;
         }else{
-            console.warn(`${this._id} initialized as AI player without AI logic object provided`);
+            throw new Error('Unable to initialize an AI player without an AI')
         }
-        
     }
 }
 
+
+Player.prototype.manageBy = function(Ai){
+    if(!this.AI){
+        this.type = PlayerType.AI;
+    }else{
+        this.AI.stopManaging(this);
+        this.AI = undefined;
+    }
+    Ai.managePlayer(this);
+    this.AI = Ai;
+
+}
 
 
 module.exports = Player;

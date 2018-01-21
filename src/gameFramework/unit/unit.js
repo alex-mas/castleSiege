@@ -30,6 +30,7 @@ const Unit = function (game, x, y, spriteName, player, attributes) {
     this.currentOrder = undefined;
     this.pathfinder.grid = new pf.Grid(this.game.grid.collisionGrid);
     //TODO: Give empty brain to units
+    this.brain = new Brain(game, this, player);
 }
 
 Unit.prototype = Object.create(Pawn.prototype);
@@ -47,7 +48,7 @@ Unit.prototype.computeMove = function (x, y) {
     this.___timer___ = new Date();
     this.game.__pathfinder__.distributeWork('findPath', {
         from: [this.gridX, this.gridY],
-        to: [x,y],
+        to: [x, y],
         id: this._id
     });
 }
@@ -119,7 +120,7 @@ Unit.prototype.onPathResult = function (path) {
     //Warning: if other orders isue path computation requests we will need to account for them here
     if (this.currentOrder &&
         (this.currentOrder.type === 'staticMovement' ||
-        this.currentOrder.type === 'dynamicMovement')) {
+            this.currentOrder.type === 'dynamicMovement')) {
         if (path.length) {
             this.currentOrder.points = path;
             this.currentOrder.computed = true;
@@ -225,7 +226,7 @@ Unit.prototype.executeOrders = function () {
                 if (this.currentOrder.points === undefined ||
                     targetX !== this.currentOrder.points[this.currentOrder.points.length - 1][0] ||
                     targetY !== this.currentOrder.points[this.currentOrder.points.length - 1][1]) {
-                    if(!this.currentOrder.beingComputed){
+                    if (!this.currentOrder.beingComputed) {
                         this.computeMove(this.currentOrder.target.x, this.currentOrder.target.y);
                     }
                 }

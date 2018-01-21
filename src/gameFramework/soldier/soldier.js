@@ -24,7 +24,7 @@ const Soldier = function (game, x, y, spriteName, player, attributes, brain) {
     Unit.call(this, game, x, y, spriteName, player, attributes);
     
     //define its brain
-    this.brain = brain || new SoldierBrain(game, this);
+    this.brain = brain || new SoldierBrain(game, this,player);
     //container object for data that affects the unit such as debuffs, etc...
     this.status = {
 

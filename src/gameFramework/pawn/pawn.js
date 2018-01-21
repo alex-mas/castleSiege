@@ -46,7 +46,7 @@ const Pawn = function (game, x, y, spriteName, player, attributes) {
 
 
     //Attribute initialization
-    this.attributes = undefined;
+    this.attributes = {};
     if (attributes) {
         this.attributes = attributes;
         if (attributes.health) {

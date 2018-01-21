@@ -1,4 +1,4 @@
-
+const {findById} = require('../utils/utils');
 /**
  * @name Brain
  * @class Brain
@@ -23,7 +23,7 @@ Brain.prototype.orderStaticMove = function (x, y) {
         y: y,
         computed: false,
         beingComputed: false,
-        points: []
+        points: undefined
     });
 };
 
@@ -38,6 +38,24 @@ Brain.prototype.orderDynamicMove = function(target){
         computed: false,
         beingComputed: false
     });
+}
+
+
+Brain.prototype.onAIOrder = function(order){ 
+    if(order.target){
+        const target = findById(order.target,this.game);
+        if(target){
+            order.targetId = order.target;
+            order.target = target; 
+        }else{
+            throw new Error('Unable to find target');
+        }
+    }
+    this.host.orders.push(order);
+    if(order.replace){
+        this.host.clearOrder();
+    }
+    
 }
 
 

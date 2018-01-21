@@ -1,7 +1,8 @@
 /* project dependencies */
 //node modules
 const fs = require('fs');
-
+const os = require('os');
+const CPU_COUNT =  os.cpus().length;
 
 
 //Styles
@@ -34,22 +35,7 @@ game.grid = {
     tileGrid: [],
     collisionGrid: []
 };
-game.grid.onChange = function(){
-    game.__pathfinder__.distributeWork('setGrid',{
-        grid: game.grid.collisionGrid
-    });
-}
-game.__pathfinder__ = new gameFramework.ThreadManager(__dirname,'/gameFramework/workers/pathfinding.js',{
-    ammountOfWorkers: 2,
-},function(e){
-    const id = e.data.id;
-    for(let i = 0; i< game._units.length; i++){
-        const unit = game._units[i];
-        if(unit._id === id){
-            unit.onPathResult(e.data.path);
-        }
-    }
-});
+
 
 
 function preload() {
@@ -103,6 +89,35 @@ function paintWorldGround() {
 
 //called on game start
 function create() {
+    game.__pathfinder__ = new gameFramework.ThreadManager(__dirname,'/gameFramework/workers/pathfinding.js',{
+        amountOfWorkers: 1,
+    },function(e){
+        const id = e.data.id;
+        for(let i = 0; i< game._units.length; i++){
+            const unit = game._units[i];
+            if(unit._id === id){
+                unit.onPathResult(e.data.path);
+            }
+        }
+    });
+    game.grid.onChange = function(){
+        game.__pathfinder__.distributeWork('setGrid',{
+            grid: game.grid.collisionGrid
+        });
+    }
+
+    game.__AIManager__ = new gameFramework.ThreadManager(
+        __dirname,
+        '/gameFramework/workers/AIWorker.js',
+        {
+            amountOfWorkers: CPU_COUNT,
+            sendingMethod: "regular"
+        }
+    );
+    const regularAi = new gameFramework.AI(game,'regularAi1');
+
+    game.__AIManager__.setEventHandler(regularAi.threadCallback.bind(regularAi));
+    
     game.physics.startSystem(Phaser.Physics.P2JS);
     paintWorldGround();
     game.__pathfinder__.distributeWork('setGrid',{
@@ -117,13 +132,13 @@ function create() {
     const blueTeam = new gameFramework.Team('Blue Team');
     redTeam.addEnemy(blueTeam);
     blueTeam.addEnemy(redTeam);
-    const redPlayer = new gameFramework.Player('Red Player', gameFramework.PlayerType.IDLE_AI, redTeam);
-    const bluePlayer = new gameFramework.Player('Blue Player', gameFramework.PlayerType.IDLE_AI, blueTeam);
+    const redPlayer = new gameFramework.Player(regularAi,gameFramework.PlayerType.AI, 'Red Player',redTeam);
+    const bluePlayer = new gameFramework.Player(regularAi,gameFramework.PlayerType.AI,'Blue Player', blueTeam);
 
 
     //instantiate all the units in recrangular formation
-    for (let j = 0; j < 17; j++) {
-        for (let i = 0; i < 32; i++) {
+    for (let j = 0; j < 12; j++) {
+        for (let i = 0; i < 15; i++) {
             game._units.push(new gameFramework.Soldier(
                 game,
                 32 + 32 * j,

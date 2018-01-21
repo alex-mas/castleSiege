@@ -1,5 +1,5 @@
 const DiplomacyState = require('../global_variables/enums/diplomacystate.js');
-
+const AI = require('../ai/ai');
 
 
 /**
@@ -127,6 +127,9 @@ Team.prototype.getTeamRelation = function (team) {
  */
 Team.prototype.isAllyOf = function (team) {
     sanitizeInput(team)
+    if(team === this){
+        return true;
+    }
     let relation = this.getTeamRelation(team);
     if (relation === DiplomacyState.ALLY) {
         return true;

@@ -1,4 +1,4 @@
-<img src="./resources/icon.png">
+<img src="resources/icon.png">
 # Castle Siege technical demo#
 
 This showcases an electron app that uses electron and web workers as a base for the implementation of the game logic.
@@ -36,5 +36,5 @@ This will serve as one of the building blocks for a medieval game.
 
 ## Copyright ##
 
-Â© 2017-2018 Alex Mas
+© 2017-2018 Alex Mas
 

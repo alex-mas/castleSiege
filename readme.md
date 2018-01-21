@@ -36,5 +36,5 @@ This will serve as one of the building blocks for a medieval game.
 
 ## Copyright ##
 
-© 2017-2018 Alex Mas
+� 2017-2018 Alex Mas
 

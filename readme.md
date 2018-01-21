@@ -1,4 +1,4 @@
-<img src="./resources/icon.png">
+![Project Icon](".resources/icon.png")
 # Castle Siege technical demo#
 
 This showcases an electron app that uses electron and web workers as a base for the implementation of the game logic.

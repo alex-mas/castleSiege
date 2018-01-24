@@ -216,6 +216,7 @@ Unit.prototype.executeOrders = function () {
             break;
         //WARNING: dynamic movement never ends because the unit collision doesn't allow it to reach the other unit
         case 'dynamicMovement':
+            console.log('dynmove order');
             const targetX = this.currentOrder.target.gridX,
                 targetY = this.currentOrder.target.gridY;
             //check if we have arrived at destination

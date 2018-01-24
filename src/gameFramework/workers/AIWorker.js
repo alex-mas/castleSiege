@@ -1,3 +1,5 @@
+let gameContext = {};
+
 const chooseTargetFrom = function (enemies, actor) {
     let optimalTarget = enemies[0];
     let minimumDistance = 90000;
@@ -71,21 +73,63 @@ const sendStaticMovementOrder = function (event, x, y, actor, replaceOrder = fal
     });
 }
 
+const distributeUnits = function () {
+    //reset unit arrays
+    for (let j = 0; j < gameContext.teams.length; j++) {
+        gameContext.teams[j].units = [];
+    }
+    //populate unit arrays in function of its team
+    for (let i = 0; i < gameContext.units.length; i++) {
+        for (let j = 0; j < gameContext.teams.length; j++) {
+            if (gameContext.teams[j].id === gameContext.units[i].team) {
+                gameContext.teams[j].units.push(gameContext.units[i]);
+            }
+        }
+    }
+}
+
+const getEnemies = function (teamId) {
+    let enemies = [];
+    //iterate teams
+    for (let i = 0; i < gameContext.teams.length; i++) {
+        const team = gameContext.teams[i];
+        //itearate its enemies  id's
+        for (let j = 0; j < team.enemies.length; j++) {
+            const enemy = team.enemies[j];
+            //if enemy id match with the provided id, it means both teams are enemies
+            if (enemy === teamId) {
+                //then we push the units of that team to enemies array
+                enemies = enemies.concat(team.units);
+            }
+        }
+    }
+    return enemies;
+}
+
 onmessage = function (e) {
     //DATA PARSING
     let { event, context } = e.data;
-    context = JSON.parse(context);
-    /* QOL NAMING */
-    const enemies = context.units.enemies;
-    const allies = context.units.allies;
-    const actor = context.actor;
-    const attacks = actor.attributes.attack;
-    const orders = actor.orders;
-    const windowData = context.window;
+
+
 
     switch (event) {
+        case 'initializeContext':
+            gameContext = context;
+            distributeUnits();
+            break;
+        case 'setContext':
+            gameContext.units = context.units;
+            gameContext.window = context.window;
+            distributeUnits();
+            break;
         case 'soldierAI':
+            /* QOL NAMING */
+            const actor = context;
+            const attacks = actor.attributes.attack;
+            const orders = actor.orders;
+            const windowData = gameContext.window;
             if (orders.length < 1) {
+                let enemies = getEnemies(actor.team);
                 if (enemies.length > 0) {
                     let enemy = chooseTargetFrom(enemies, actor);
                     let maximumDamage = 0;
@@ -112,6 +156,7 @@ onmessage = function (e) {
                 }
             } else {
                 if (orders[0].type === "dynamicMovement") {
+                    let enemies = getEnemies(actor.team);
                     if (enemies.length > 0) {
                         let enemy = chooseTargetFrom(enemies, actor);
                         if (enemy.id !== orders[0].target.id) {

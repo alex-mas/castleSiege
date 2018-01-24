@@ -49,6 +49,8 @@ SoldierBrain.prototype.searchForEnemies = function () {
 }
 
 
+//TODO: Move this parsing logic to the AI and synchronize it in a centralized 
+//      way with all workers, add team id and try to optimize data sent
 //Extract relevant data from the unit data structure
 SoldierBrain.prototype.parseUnitData = function (unit) {
     return {
@@ -76,7 +78,6 @@ SoldierBrain.prototype.searchUnits = function () {
                 neutral.push(this.parseUnitData(gameObject));
             }
         }
-
     }
     return {
         enemies,
@@ -104,6 +105,7 @@ SoldierBrain.prototype.sanitizeOrders = function(){
     return orders;
 }
 
+/*
 SoldierBrain.prototype.getHostContext = function () {
     return {
         units: this.searchUnits(),
@@ -121,6 +123,8 @@ SoldierBrain.prototype.getHostContext = function () {
         },
     };
 }
+*/
+
 
 //TODO: implement strength check to go for closest and weakest target
 SoldierBrain.prototype.chooseTarget = function (enemies) {
@@ -154,11 +158,23 @@ SoldierBrain.prototype.orderAttack = function (attackIndex, target) {
 
 
 
-/**
- * @todo - Inspect script execution data to determine if its soldierBrain, soldier or unit movements that are creating the bottleneck
- * @todo - Problem regarding the static nature of the current targeting system.
- * @todo - Performance problems, script execution throtles in this zone, remove logging and try to optimize code (async+multithreading?)
- */
+SoldierBrain.prototype.getHostContext = function(){
+    return {
+        team: this.host.owner.team._id,
+        health: this.host.health,
+        x: this.host.x,
+        y: this.host.y,
+        id: this.host._id,
+        attributes: this.host.attributes,
+        orders: this.sanitizeOrders()
+    };
+}
+
+
+//BENCHMARKS: every unit calls this 9.2 times each second, creating a bottleneck 
+//due to the structured clone of web workers
+//TODO: Give only order specific information to AI after the context broadcasting
+//      is refactored there
 //executed on game loop, determines the course of action given a context
 SoldierBrain.prototype.update = function (context) {
 
@@ -181,68 +197,6 @@ SoldierBrain.prototype.update = function (context) {
         this._events.REQUEST_AI_UPDATE = false;
         this.owner.AI.choose('soldierAI', this.getHostContext());
     }
-
-/*
-    //class specific behaviour
-    //TODO: remove hardcoded behaviour.
-    if (this.host.orders.length < 1) {
-        const enemies = this.searchForEnemies();
-        if (enemies.length > 0) {
-            const enemy = this.chooseTarget(enemies);
-            let maximumDamage = 0;
-            let optimalAttack = undefined;
-            for (var i = 0; i < this.host.attributes.attack.length; i++) {
-                let thisAttack = this.host.attributes.attack[i];
-                if (this.host.isInAttackRange(i, enemy)) {
-                    if (thisAttack.damage > maximumDamage) {
-                        maximumDamage = thisAttack.damage;
-                        optimalAttack = i;
-                    }
-                }
-            }
-            if (optimalAttack !== undefined) {
-                this.orderAttack(optimalAttack, enemy);
-            } else {
-                this.orderDynamicMove(enemy);
-            }
-        } else {
-            const x = Math.random() * window.innerWidth - 32,
-                y = Math.random() * window.innerHeight - 32;
-            this.orderStaticMove(x, y);
-        }
-
-    } else {
-        if (this.__counter % 280 !== 0) return;
-        if (this.host.currentOrder.type === "dynamicMovement") {
-            const enemies = this.searchForEnemies();
-            if (enemies.length > 0) {
-                let enemy = this.chooseTarget(enemies);
-                if (enemy !== this.host.currentOrder.target) {
-                    let maximumDamage = 0;
-                    let optimalAttack = undefined;
-                    for (let i = 0; i < this.host.attributes.attack.length; i++) {
-                        let thisAttack = this.host.attributes.attack[i];
-                        if (this.host.isInAttackRange(i, enemy)) {
-                            if (thisAttack.damage > maximumDamage) {
-                                maximumDamage = thisAttack.damage;
-                                optimalAttack = i;
-                            }
-                        }
-                    }
-                    if (optimalAttack !== undefined) {
-                        this.orderAttack(optimalAttack, enemy);
-                        this.host.clearOrder();
-                    } else {
-                        this.orderDynamicMove(enemy);
-                        this.host.clearOrder();
-                    }
-                }
-            }
-        }
-
-    }
-*/
-
 }
 
 

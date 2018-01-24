@@ -2,7 +2,7 @@
 //node modules
 const fs = require('fs');
 const os = require('os');
-const CPU_COUNT =  os.cpus().length;
+const CPU_COUNT = os.cpus().length;
 
 
 //Styles
@@ -28,14 +28,68 @@ import env from "env";
 
 
 let game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.AUTO, 'app', { preload: preload, create: create, update: update, render: render });
-const __srcdir = __dirname+'../src';
+const __srcdir = __dirname + '../src';
+
+
 /*Phaser game customitzations*/
+
 game._units = [];
+
 game.grid = {
     tileGrid: [],
     collisionGrid: []
 };
 
+game.__pathfinder__ = new gameFramework.ThreadManager(__dirname, '/gameFramework/workers/pathfinding.js', {
+    amountOfWorkers: 1,
+}, function (e) {
+    const id = e.data.id;
+    for (let i = 0; i < game._units.length; i++) {
+        const unit = game._units[i];
+        if (unit._id === id) {
+            unit.onPathResult(e.data.path);
+        }
+    }
+});
+
+game.grid.onChange = function () {
+    game.__pathfinder__.distributeWork('setGrid', {
+        grid: game.grid.collisionGrid
+    });
+}
+
+game.__AIManager__ = new gameFramework.ThreadManager(
+    __dirname,
+    '/gameFramework/workers/AIWorker.js',
+    {
+        amountOfWorkers: CPU_COUNT,
+        sendingMethod: "regular"
+    }
+);
+
+const regularAi = new gameFramework.AI(game, 'regularAi1');
+
+game.__AIManager__.setEventHandler(regularAi.threadCallback.bind(regularAi));
+
+
+//Define testing teams and players
+game._teams = [];
+game._players = [];
+
+const redTeam = new gameFramework.Team('Red Team');
+const blueTeam = new gameFramework.Team('Blue Team');
+redTeam.addEnemy(blueTeam);
+blueTeam.addEnemy(redTeam);
+game._teams.push(redTeam);
+game._teams.push(blueTeam);
+const redPlayer = new gameFramework.Player(gameFramework.PlayerType.AI, undefined, redTeam, regularAi);
+const bluePlayer = new gameFramework.Player(gameFramework.PlayerType.AI, undefined, blueTeam, regularAi);
+game._players.push(redPlayer);
+game._players.push(bluePlayer);
+
+
+//basic initialization
+regularAi.update(true);
 
 
 function preload() {
@@ -89,56 +143,20 @@ function paintWorldGround() {
 
 //called on game start
 function create() {
-    game.__pathfinder__ = new gameFramework.ThreadManager(__dirname,'/gameFramework/workers/pathfinding.js',{
-        amountOfWorkers: 1,
-    },function(e){
-        const id = e.data.id;
-        for(let i = 0; i< game._units.length; i++){
-            const unit = game._units[i];
-            if(unit._id === id){
-                unit.onPathResult(e.data.path);
-            }
-        }
-    });
-    game.grid.onChange = function(){
-        game.__pathfinder__.distributeWork('setGrid',{
-            grid: game.grid.collisionGrid
-        });
-    }
 
-    game.__AIManager__ = new gameFramework.ThreadManager(
-        __dirname,
-        '/gameFramework/workers/AIWorker.js',
-        {
-            amountOfWorkers: CPU_COUNT,
-            sendingMethod: "regular"
-        }
-    );
-    const regularAi = new gameFramework.AI(game,'regularAi1');
-
-    game.__AIManager__.setEventHandler(regularAi.threadCallback.bind(regularAi));
-    
     game.physics.startSystem(Phaser.Physics.P2JS);
     paintWorldGround();
-    game.__pathfinder__.distributeWork('setGrid',{
+    game.__pathfinder__.distributeWork('setGrid', {
         grid: game.grid.collisionGrid
     });
-    game.__pathfinder__.distributeWork('setGrid',{
+    game.__pathfinder__.distributeWork('setGrid', {
         grid: game.grid.collisionGrid
     });
-
-    //Define testing teams and players
-    const redTeam = new gameFramework.Team('Red Team');
-    const blueTeam = new gameFramework.Team('Blue Team');
-    redTeam.addEnemy(blueTeam);
-    blueTeam.addEnemy(redTeam);
-    const redPlayer = new gameFramework.Player(regularAi,gameFramework.PlayerType.AI, 'Red Player',redTeam);
-    const bluePlayer = new gameFramework.Player(regularAi,gameFramework.PlayerType.AI,'Blue Player', blueTeam);
 
 
     //instantiate all the units in recrangular formation
-    for (let j = 0; j < 12; j++) {
-        for (let i = 0; i < 15; i++) {
+    for (let j = 0; j < 1; j++) {
+        for (let i = 0; i < 2; i++) {
             game._units.push(new gameFramework.Soldier(
                 game,
                 32 + 32 * j,
@@ -152,7 +170,7 @@ function create() {
                         isOnCd: false,
                         cd: 750,
                         damage: 25,
-                        range: 100
+                        range: 150
                     }]
                 }
             ));
@@ -169,7 +187,7 @@ function create() {
                         isOnCd: false,
                         cd: 750,
                         damage: 25,
-                        range: 100
+                        range: 150
                     }]
                 }
             ));
@@ -181,7 +199,8 @@ function create() {
 
 
 function update() {
-
+    regularAi.update();
+    
     //custom game update logic, most logic is called on the update methods of instantiated game objects tho
 }
 

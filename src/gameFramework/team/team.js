@@ -1,5 +1,6 @@
 const DiplomacyState = require('../global_variables/enums/diplomacystate.js');
 const AI = require('../ai/ai');
+const uuid = require('uuid/v4');
 
 
 /**
@@ -15,6 +16,7 @@ const Team = function (name, initialMembers, initialDiplomacy) {
     this.name = name;
     this.members = initialMembers || [];
     this.diplomacy = new Map(initialDiplomacy) || [];
+    this._id = uuid();
 }
 
 /* ---------------------------------------------------------------------

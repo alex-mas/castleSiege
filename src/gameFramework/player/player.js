@@ -1,7 +1,7 @@
 let PlayerType = require('../global_variables/enums/playerType.js');
 const Team = require('../team/team.js');
 const AI = require('../ai/ai.js');
-
+const uuid = require('uuid/v4');
 
 /**
  * @description Implements AI in case of AI players and unit property through unit objects
@@ -11,15 +11,10 @@ const AI = require('../ai/ai.js');
  * @param {Team} team
  * @param {AI} Ai
  */
-const Player = function(Ai,type,id,team){
-    if(team && team instanceof Team){
-        this.team = team;
-        team.addMember(this);
-    }else{
-        this.team = new Team(`${id}'s team`,[this]);
-    }
+const Player = function(type,id,team,Ai){
     //TODO: generate a new ID for each player
-    this._id = id || 'defaultId';
+    this._id = id || uuid();
+
     this.type = type || PlayerType.HUMAN;
     if(type === PlayerType.AI){
         if(Ai instanceof AI){
@@ -28,6 +23,13 @@ const Player = function(Ai,type,id,team){
         }else{
             throw new Error('Unable to initialize an AI player without an AI')
         }
+    }
+
+    if(team && team instanceof Team){
+        this.team = team;
+        team.addMember(this);
+    }else{
+        this.team = new Team(`${id}'s team`,[this]);
     }
 }
 

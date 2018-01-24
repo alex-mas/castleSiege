@@ -1,12 +1,22 @@
 const { findById } = require('../utils/utils');
 const Team = require('../team/team');
 const Player = require('../player/player');
+const DiplomacyState = require('../global_variables/enums/diplomacystate');
 
 const AI = function (game, id, eventCallbacks) {
+
     this.id = id;
+
     this.game = game;
+
     this.managing = [];
+
+    this.nextContextUpdate;
+
+    this.amountOfUnits;
+
     this.eventCallbacks = {};
+
     if (eventCallbacks) {
         for (let i = 0; i < eventCallbacks.length; i++) {
             const currentEvent = eventCallbacks[i];
@@ -39,8 +49,77 @@ AI.prototype.stopManaging = function (player) {
     }
 }
 
+
+AI.prototype.parseUnitData = function (unit) {
+    return {
+        team: unit.owner.team._id,
+        id: unit._id,
+        health: unit.health,
+        x: unit.x,
+        y: unit.y
+    };
+}
+
+AI.prototype.getGameContext = function () {
+    let units = [];
+    let unitsArray = this.game._units;
+
+    for (var i = 0; i < unitsArray.length; i++) {
+        let gameObject = unitsArray[i];
+        if (gameObject.alive) {
+            units.push(this.parseUnitData(gameObject));
+        }
+    }
+
+    return {
+        units,
+        window: {
+            height: window.innerHeight,
+            width: window.innerWidth
+        } 
+    }
+}
+
+AI.prototype.broadcastGameContext = function(){
+    const context = this.getGameContext();
+    this.amountOfUnits = context.units.length;
+    this.game.__AIManager__.broadcast('setContext',context);
+}
+
+AI.prototype.broadcastContextInitialization = function(){
+    const context = this.getGameContext();
+    context.teams = [];
+    for(let i = 0; i < this.game._teams.length; i++){
+        const team = this.game._teams[i];
+        let allies = [];
+        let enemies = [];
+        team.diplomacy.forEach((diplomacy,team,map)=>{
+            if(diplomacy === DiplomacyState.ALLY){
+                allies.push(team._id);
+            }else if (diplomacy === DiplomacyState.ENEMY){
+                enemies.push(team._id);
+            }
+        });
+        context.teams.push({
+            id: team._id,
+            allies,
+            enemies,
+            units: []
+        });
+    }
+    this.amountOfUnits = context.units.length;
+    this.game.__AIManager__.broadcast('initializeContext',context);
+}
+
 AI.prototype.choose = function (event, context) {
-    this.game.__AIManager__.distributeWork(event, JSON.stringify(context));
+    this.game.__AIManager__.distributeWork(event, context);
+}
+
+AI.prototype.broadcastOrder = function (data) {
+    const actor = findById(data.actor, this.game);
+    if (actor) {
+        actor.brain.onAIOrder(data.order);
+    }
 }
 
 AI.prototype.addEventHandler = function (event, handler) {
@@ -52,13 +131,6 @@ AI.prototype.addEventHandler = function (event, handler) {
 
     this.eventCallbacks[event] = handler;
 
-}
-
-AI.prototype.broadcastOrder = function (data) {
-    const actor = findById(data.actor, this.game);
-    if (actor) {
-        actor.brain.onAIOrder(data.order);
-    }
 }
 
 AI.prototype.threadCallback = function (e) {
@@ -77,5 +149,21 @@ AI.prototype.threadCallback = function (e) {
     }
 }
 
+
+
+AI.prototype.update = function(init){
+    if(!this.nextContextUpdate || this.nextContextUpdate <= 0){
+        this.nextContextUpdate = 16 + this.amountOfUnits/Math.E;
+        if(init){
+            this.broadcastContextInitialization();
+        }else{
+            console.log('bradcasting context');
+            this.broadcastGameContext();
+        }
+        
+    }else{
+        this.nextContextUpdate--;
+    }
+}
 
 module.exports = AI;

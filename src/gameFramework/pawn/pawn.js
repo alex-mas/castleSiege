@@ -33,7 +33,7 @@ const Pawn = function (game, x, y, spriteName, player, attributes) {
     if (player) {
         this.owner = player;
     } else {
-        this.owner = new Player('defaultAI', PlayerType.IDLE_AI);
+        this.owner = new Player(PlayerType.IDLE_AI);
     }
 
 

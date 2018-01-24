@@ -77,6 +77,7 @@ Soldier.prototype.executeOrders = function () {
         //Check each possible case and perform its appropiate action either do nothing.
         switch (this.currentOrder.type) {
             case 'attack':
+                console.log('we should be attacking now');
                 if (this.currentOrder.done === false) {
                     if(this.currentOrder.target.alive){
                         if (this.currentOrder.method === 'once') {

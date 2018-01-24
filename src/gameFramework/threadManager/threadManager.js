@@ -18,7 +18,7 @@
  * @property {Number} lastAssignedWorker - Matches the index of the worker inside workers array that was assigned work more recently
  * 
  */
-const ThreadManager = function (callerPath, relFilePath, config = {},eHandler) {
+const ThreadManager = function (callerPath, relFilePath, config = {}, eHandler) {
     //static property initalization
     if (!callerPath || !relFilePath) {
         throw new Error(`File paths must be provided in order for the thread manager to work, expected two string arguments as paths and instead got ${callerPath} and ${relFilePath}`)
@@ -32,7 +32,7 @@ const ThreadManager = function (callerPath, relFilePath, config = {},eHandler) {
     if (!this.config.initialization)
         this.config.initialization = "at_start";
     //sending method
-    if(!this.config.sendingMethod)
+    if (!this.config.sendingMethod)
         this.config.sendingMethod = "default";
 
     //filepaths
@@ -42,6 +42,7 @@ const ThreadManager = function (callerPath, relFilePath, config = {},eHandler) {
     //worker config
     this.amountOfWorkers = config.amountOfWorkers || 4;
     this.workers = [];
+    this.workerStatus = [];
     this.lastAssignedWorker = undefined;
 
     //define provided handler
@@ -57,19 +58,37 @@ const ThreadManager = function (callerPath, relFilePath, config = {},eHandler) {
         for (let i = 0; i < this.amountOfWorkers; i++) {
             this.workers.push(new Worker(this.callerPath + this.filePath));
             this.workers[i].onmessage = this.onMessage;
+            this.workerStatus[i] = 'idle';
         }
     }
 
 }
 
+ThreadManager.prototype.initializeWorkers = function () {
+    let currentAmmount = this.workers.length;
+    for (let i = 0; i < this.amountOfWorkers - currentAmmount; i++) {
+        this.workers.push(new Worker(this.callerPath + this.filePath));
+        this.workers[i].onmessage = this.onMessage;
+        this.workerStatus[i] = 'idle';
+    }
+}
 
-ThreadManager.prototype.setEventHandler = function(handler){
-    if(!handler || typeof handler !== 'function')
+ThreadManager.prototype.initializeWorker = function () {
+    if (this.workers.length < this.amountOfWorkers) {
+        this.workers.push(new Worker(this.callerPath + this.filePath));
+        this.workers[this.workers.length-1].onmessage = this.onMessage;
+        this.workerStatus[this.workers.length-1] = 'idle';
+    } else {
+        console.warn('Adding more threads that exceed the configured ammount, change the configured ammount instead');
+    }
+}
+
+ThreadManager.prototype.setEventHandler = function (handler) {
+    if (!handler || typeof handler !== 'function')
         throw new Error(`Expected a function as argument and got a ${typeof handler}`);
     this.onMessage = handler;
     this.isCallbackDefined = true;
 }
-
 
 ThreadManager.prototype.distributeWork = function (event, context, callback) {
 
@@ -86,7 +105,7 @@ ThreadManager.prototype.distributeWork = function (event, context, callback) {
 
         this.workers[this.workers.length - 1].onmessage = workHandler;
         this.workers[this.workers.length - 1].postMessage({ event, context });
-
+        this.workerStatus[this.workers.length - 1] = 'working';
         //return to prevent duplicating the requests on the worker
         return;
     }
@@ -101,14 +120,17 @@ ThreadManager.prototype.distributeWork = function (event, context, callback) {
         if (this.lastAssignedWorker === undefined || this.lastAssignedWorker < 0) {
             assignedWorker = this.workers[0];
             this.lastAssignedWorker = 0;
+            this.workerStatus[0] = 'working';
         } else {
             if (this.lastAssignedWorker < this.workers.length - 2) {
                 //increase the index and use it to determine the actual worker to assign
                 this.lastAssignedWorker++;
                 assignedWorker = this.workers[this.lastAssignedWorker];
+                this.workerStatus[this.lastAssignedWorker] = 'working';
             } else {
                 //reset index and assing work to last element in the array
                 assignedWorker = this.workers[this.workers.length - 1];
+                this.workerStatus[this.workers.length - 1] = 'working';
                 this.lastAssignedWorker = -1;
             }
         }
@@ -120,15 +142,26 @@ ThreadManager.prototype.distributeWork = function (event, context, callback) {
     //once we have chosen the worker that will take the job: 
     //  we assign its callback and then give it the work
     assignedWorker.onmessage = workHandler;
-    if(this.config.sendingMethod === "transferList"){
+    if (this.config.sendingMethod === "transferList") {
         let data = { event, context };
         assignedWorker.postMessage(data, [data]);
-    }else{
+    } else {
         assignedWorker.postMessage({ event, context });
     }
-    
+
 }
 
+//TODO: Stop using this method altogether and just send the event to an intermediary worker
+//That will implement its own thread manager and handle AI work distributing
+ThreadManager.prototype.broadcast = function (event, context, callback) {
+    if (this.workers.length < this.amountOfWorkers) {
+        this.initializeWorkers();
+    }
+    for (let i = 0; i<this.workers.length; i++){
+        this.workers[i].postMessage({event, context});
+        this.workerStatus[i] = 'working';
+    }
+}
 
 
 module.exports = ThreadManager;

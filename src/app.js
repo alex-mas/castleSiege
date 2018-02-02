@@ -26,8 +26,24 @@ const gameFramework = require('./gameFramework/gameFramework.js');
 import env from "env";
 
 
-
-let game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.WEBGL, 'app', { preload: preload, create: create, update: update, render: render });
+const config = {
+    width: window.innerWidth, 
+    height: window.innerHeight,
+    renderer: Phaser.WEBGL_MULTI,
+    canvasId: 'app',
+    antialias: true,
+    multiTexture: true,
+    roundPixels: true,
+    enableDebug: false,
+    state: { 
+        preload: preload, 
+        create: create, 
+        update: update, 
+        render: render 
+    }
+}
+let game = new Phaser.Game(config);
+game.clearBeforeRender = false;
 const __srcdir = __dirname + '../src';
 
 
@@ -98,6 +114,9 @@ function preload() {
     logger.verbose({
         message: 'preloading assets...'
     });
+
+    game.load.atlasJSONHash('frames','./../resources/spritesheets/spritesheet2.png','./../resources/spritesheets/spritesheet2.json');
+    /* ---- old asset loading -----
     for (var i = 1; i <= 538; i++) {
         if (unexistentAsset(i)) {
             continue;
@@ -119,6 +138,7 @@ function preload() {
     game.load.image(`knight_red`, `./../resources/structures/knightRed.png`);
     game.load.image(`axe_red`, `./../resources/units/axeRed.png`);
     game.load.image(`axe_blue`, `./../resources/units/axeBlue.png`);
+    */
     logger.debug({
         message: '...Finished preloading assets'
     });
@@ -133,7 +153,7 @@ function paintWorldGround() {
         game.grid.tileGrid[i] = [];
         for (var j = 0; j < window.innerWidth / 64; j++) {
             var spriteNumber = 1 + Math.round(Math.random() * 5);
-            game.grid.tileGrid[i][j] = game.add.sprite(64 * j, 64 * i, `tile_${spriteNumber}`);
+            game.grid.tileGrid[i][j] = game.add.sprite(64 * j, 64 * i, 'frames',`tile_0${spriteNumber}.png`);
             if (spriteNumber >= 7) {
                 game.grid.collisionGrid[i][j] = 1;
             } else {
@@ -146,6 +166,7 @@ function paintWorldGround() {
 //called on game start
 function create() {
 
+    game.renderer.setTexturePriority(['frames']);
     game.physics.startSystem(Phaser.Physics.P2JS);
     paintWorldGround();
     game.__pathfinder__.broadcast('setGrid', {
@@ -153,13 +174,13 @@ function create() {
     });
 
     //instantiate all the units in recrangular formation
-    for (let j = 0; j < 15; j++) {
+    for (let j = 0; j < 25; j++) {
         for (let i = 0; i < 30; i++) {
             game._units.push(new gameFramework.Soldier(
                 game,
                 32 + 32 * j,
                 32 + 32 * i,
-                'axe_red',
+                'axeRed.png',
                 redPlayer,
                 {
                     health: 100,
@@ -176,7 +197,7 @@ function create() {
                 game,
                 (window.innerWidth - 32) - 32 * j,
                 32 + 32 * i,
-                'axe_blue',
+                'axeBlue.png',
                 bluePlayer,
                 {
                     health: 100,

@@ -1,7 +1,6 @@
 #FIRST ITERATION REMAINING TASKS:
 
 
-## Optimize communication to AI threads
 
 ## Create a multiple height level via pathfinding
 - Units will be in a height position
@@ -15,3 +14,7 @@
 - Delay game generation
 - Provide input handling to choose the variables
 - Initialize the game with the variables provided
+
+
+
+##Optimize the app further -> target 2000 units at >30 fps

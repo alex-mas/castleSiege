@@ -16,7 +16,8 @@
       "package.json",
       "resources/structures/*",
       "resources/tiles/*",
-      "resources/units/*"
+      "resources/units/*",
+      "resources/spritesheets/*"
     ],
     "directories": {
       "buildResources": "resources"

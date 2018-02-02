@@ -25,7 +25,7 @@ const PlayerType = require('../global_variables/enums/playerType.js');
 const Pawn = function (game, x, y, spriteName, player, attributes) {
     //parent constructor
     //  We call the Phaser.Sprite passing in the game reference
-    Phaser.Sprite.call(this, game, x, y, spriteName);
+    Phaser.Sprite.call(this, game, x, y,'frames',spriteName);
     game.add.existing(this);
     game.physics.p2.enable(this);
 

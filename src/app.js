@@ -27,7 +27,7 @@ import env from "env";
 
 
 
-let game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.AUTO, 'app', { preload: preload, create: create, update: update, render: render });
+let game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.WEBGL, 'app', { preload: preload, create: create, update: update, render: render });
 const __srcdir = __dirname + '../src';
 
 
@@ -41,12 +41,11 @@ game.grid = {
 };
 
 game.__pathfinder__ = new gameFramework.ThreadManager(__dirname, '/gameFramework/workers/pathfinding.js', {
-    amountOfWorkers: 1,
+    amountOfWorkers: 2,
 }, function (e) {
-    const id = e.data.id;
     for (let i = 0; i < game._units.length; i++) {
         const unit = game._units[i];
-        if (unit._id === id) {
+        if (unit._id == e.data.id) {
             unit.onPathResult(e.data.path);
         }
     }
@@ -62,7 +61,7 @@ game.__AIManager__ = new gameFramework.ThreadManager(
     __dirname,
     '/gameFramework/workers/AIWorker.js',
     {
-        amountOfWorkers: CPU_COUNT,
+        amountOfWorkers: (CPU_COUNT*1.5),
         sendingMethod: "regular"
     }
 );
@@ -93,6 +92,9 @@ regularAi.update(true);
 
 
 function preload() {
+    if(env.name !== "production"){
+        game.time.advancedTiming = true;
+    }
     logger.verbose({
         message: 'preloading assets...'
     });
@@ -146,17 +148,13 @@ function create() {
 
     game.physics.startSystem(Phaser.Physics.P2JS);
     paintWorldGround();
-    game.__pathfinder__.distributeWork('setGrid', {
+    game.__pathfinder__.broadcast('setGrid', {
         grid: game.grid.collisionGrid
     });
-    game.__pathfinder__.distributeWork('setGrid', {
-        grid: game.grid.collisionGrid
-    });
-
 
     //instantiate all the units in recrangular formation
-    for (let j = 0; j < 1; j++) {
-        for (let i = 0; i < 2; i++) {
+    for (let j = 0; j < 15; j++) {
+        for (let i = 0; i < 30; i++) {
             game._units.push(new gameFramework.Soldier(
                 game,
                 32 + 32 * j,
@@ -165,12 +163,12 @@ function create() {
                 redPlayer,
                 {
                     health: 100,
-                    ms: 65,
+                    ms: 60,
                     attack: [{
                         isOnCd: false,
-                        cd: 750,
-                        damage: 25,
-                        range: 150
+                        cd: 456,
+                        damage: 30,
+                        range: 45
                     }]
                 }
             ));
@@ -182,12 +180,12 @@ function create() {
                 bluePlayer,
                 {
                     health: 100,
-                    ms: 65,
+                    ms: 60,
                     attack: [{
                         isOnCd: false,
-                        cd: 750,
-                        damage: 25,
-                        range: 150
+                        cd: 456,
+                        damage: 30,
+                        range: 45
                     }]
                 }
             ));
@@ -199,6 +197,7 @@ function create() {
 
 
 function update() {
+    console.log(game.time.fps);
     regularAi.update();
     
     //custom game update logic, most logic is called on the update methods of instantiated game objects tho

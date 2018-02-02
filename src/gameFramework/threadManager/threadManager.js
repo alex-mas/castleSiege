@@ -24,6 +24,12 @@ const ThreadManager = function (callerPath, relFilePath, config = {}, eHandler) 
         throw new Error(`File paths must be provided in order for the thread manager to work, expected two string arguments as paths and instead got ${callerPath} and ${relFilePath}`)
     }
     //configuration initialization
+    if(
+        typeof config !== 'object'||
+        Array.isArray(config)
+    ){
+        throw new Error('Invalid configuration')
+    }
     this.config = config;
     //distribution
     if (!this.config.distributionMethod)
@@ -43,7 +49,7 @@ const ThreadManager = function (callerPath, relFilePath, config = {}, eHandler) 
     this.amountOfWorkers = config.amountOfWorkers || 4;
     this.workers = [];
     this.workerStatus = [];
-    this.lastAssignedWorker = undefined;
+    this.lastAssignedWorker = -1;
 
     //define provided handler
     if (!eHandler || typeof eHandler !== "function") {
@@ -122,7 +128,7 @@ ThreadManager.prototype.distributeWork = function (event, context, callback) {
             this.lastAssignedWorker = 0;
             this.workerStatus[0] = 'working';
         } else {
-            if (this.lastAssignedWorker < this.workers.length - 2) {
+            if (this.lastAssignedWorker < this.workers.length - 1) {
                 //increase the index and use it to determine the actual worker to assign
                 this.lastAssignedWorker++;
                 assignedWorker = this.workers[this.lastAssignedWorker];
@@ -145,7 +151,10 @@ ThreadManager.prototype.distributeWork = function (event, context, callback) {
     if (this.config.sendingMethod === "transferList") {
         let data = { event, context };
         assignedWorker.postMessage(data, [data]);
-    } else {
+    } else if (this.config.sendingMethod === 'json'){
+        let data = { event, context };
+        assignedWorker.postMessage(JSON.stringify(data));
+    }else{
         assignedWorker.postMessage({ event, context });
     }
 

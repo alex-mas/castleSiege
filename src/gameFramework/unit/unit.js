@@ -28,8 +28,6 @@ const Unit = function (game, x, y, spriteName, player, attributes) {
     //initialize properties
     this.orders = [];
     this.currentOrder = undefined;
-    this.pathfinder.grid = new pf.Grid(this.game.grid.collisionGrid);
-    //TODO: Give empty brain to units
     this.brain = new Brain(game, this, player);
 }
 
@@ -89,32 +87,6 @@ Unit.prototype.executeMove = function () {
     }
 }
 
-Unit.prototype.pathfinder = {
-    //TODO: update the grid each time it changes up to each frame
-    AStarFinder: new pf.AStarFinder({
-        allowDiagonal: true,
-        dontCrossCorners: true
-    }),
-    BestFirstFinder: new pf.BestFirstFinder(),
-    BreadthFirstFinder: new pf.BreadthFirstFinder(),
-    DijkstraFinder: new pf.DijkstraFinder(),
-    IDAStarFinder: new pf.IDAStarFinder(),
-    JumpPointFinder: new pf.JumpPointFinder(),
-    BiAstarFinder: new pf.BiAStarFinder(),
-    BiBestFirstFinder: new pf.BiBestFirstFinder(),
-    BiBreadthFirstFinder: new pf.BiBreadthFirstFinder(),
-    BiDijkstraFinder: new pf.BiDijkstraFinder()
-
-};
-
-
-//TODO: make this more performant --> if grid hasn't been modified do nothing in the body of this function besides checking a boolean.
-Unit.prototype.updateGrid = function () {
-    this.pathfinder.grid = new pf.Grid(this.game.grid.collisionGrid);
-}
-
-
-
 
 Unit.prototype.onPathResult = function (path) {
     //Warning: if other orders isue path computation requests we will need to account for them here
@@ -130,29 +102,6 @@ Unit.prototype.onPathResult = function (path) {
         }
     }
 }
-
-/**
- *
- * @description Synchronously Finds a path in a grid from the position of the unit to the target (x,y) coordinates
- * @param {any} x - X position to go
- * @param {any} y - Y position to go
- * @param {any} method - Pathfinding method used to find the path
- * @returns {Array[Array[Number]} Path in terms of x,y pairs
- */
-Unit.prototype.findPath = function (x, y, method) {
-    const targetX = utils.pointToGrid(x),
-        targetY = utils.pointToGrid(y);
-    let grid = this.pathfinder.grid,
-        pathArray;
-    //if method is provided we use that one to find the path, else we fallback to A*
-    if (method) {
-        pathArray = this.pathfinder[method].findPath(this.gridX, this.gridY, targetX, targetY, grid);
-    } else {
-        pathArray = this.pathfinder.AStarFinder.findPath(this.gridX, this.gridY, targetX, targetY, grid);
-    }
-    return pathArray;
-}
-
 
 Unit.prototype.clearOrders = function () {
     this.stop();
@@ -183,9 +132,10 @@ Unit.prototype.pushOrder = function (order) {
 
 //TODO: implement - checks for necessary characteristics of diferent order archetypes
 Unit.prototype.isOrderValid = function (order) {
-
+    /*
     let isValid = false;
     //validate
+    */
     return true;
 }
 
@@ -216,17 +166,18 @@ Unit.prototype.executeOrders = function () {
             break;
         //WARNING: dynamic movement never ends because the unit collision doesn't allow it to reach the other unit
         case 'dynamicMovement':
-            console.log('dynmove order');
-            const targetX = this.currentOrder.target.gridX,
-                targetY = this.currentOrder.target.gridY;
+            var targetX = this.currentOrder.target.gridX;
+            var targetY = this.currentOrder.target.gridY;
             //check if we have arrived at destination
             if (this.gridX === targetX && this.gridY === targetY) {
                 this.clearOrder();
             } else {
                 //check if target has moved from its grid position
-                if (this.currentOrder.points === undefined ||
+                if (
+                    this.currentOrder.points === undefined ||
                     targetX !== this.currentOrder.points[this.currentOrder.points.length - 1][0] ||
-                    targetY !== this.currentOrder.points[this.currentOrder.points.length - 1][1]) {
+                    targetY !== this.currentOrder.points[this.currentOrder.points.length - 1][1]
+                ) {
                     if (!this.currentOrder.beingComputed) {
                         this.computeMove(this.currentOrder.target.x, this.currentOrder.target.y);
                     }
@@ -237,8 +188,8 @@ Unit.prototype.executeOrders = function () {
 
             }
             break;
-
-
+        default:
+            break;
     }
 }
 
@@ -246,7 +197,6 @@ Unit.prototype.executeOrders = function () {
 
 Unit.prototype.update = function () {
     Pawn.prototype.update.call(this);
-    this.updateGrid();
     this.executeOrders();
 }
 

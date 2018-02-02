@@ -14,32 +14,6 @@ const Brain = function(game,host,owner){
     this.owner = owner;
 };
 
-//orders its host to move to a fixed spot
-Brain.prototype.orderStaticMove = function (x, y) {
-    //add the order to its host.
-    this.host.orders.push({
-        type: 'staticMovement',
-        x: x,
-        y: y,
-        computed: false,
-        beingComputed: false,
-        points: undefined
-    });
-};
-
-
-//orders the host to move to a target that might move
-Brain.prototype.orderDynamicMove = function(target){
-    //add the order to its host
-    this.host.orders.push({
-        type: 'dynamicMovement',
-        target: target,
-        points: undefined,
-        computed: false,
-        beingComputed: false
-    });
-}
-
 
 Brain.prototype.onAIOrder = function(order){ 
     if(order.target){

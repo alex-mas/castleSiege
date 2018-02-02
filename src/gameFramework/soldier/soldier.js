@@ -22,9 +22,9 @@ const SoldierBrain = require('./soldierBrain');
 const Soldier = function (game, x, y, spriteName, player, attributes, brain) {
     //unit implements moving and attributes
     Unit.call(this, game, x, y, spriteName, player, attributes);
-    
+
     //define its brain
-    this.brain = brain || new SoldierBrain(game, this,player);
+    this.brain = brain || new SoldierBrain(game, this, player);
     //container object for data that affects the unit such as debuffs, etc...
     this.status = {
 
@@ -42,7 +42,10 @@ Soldier.prototype.damageTarget = function (target, damage) {
 
 Soldier.prototype.attack = function (attackIndex, target) {
     let attack = this.attributes.attack[attackIndex];
-    if (!attack.isOnCd && this.isInAttackRange(attackIndex, target)) {
+    if (!this.isInAttackRange(attackIndex, target)) {
+        return true;
+    }
+    if (!attack.isOnCd) {
         attack.isOnCd = true;
         //Handle reverting cd status after it expires
         setTimeout(() => {
@@ -52,7 +55,9 @@ Soldier.prototype.attack = function (attackIndex, target) {
         //wait for the callback where the animation hits the target
         //apply the damage to the target life
         this.damageTarget(target, attack.damage);
+        return true;
     }
+    return false;
 }
 
 Soldier.prototype.isInAttackRange = function (attackIndex, target) {
@@ -77,26 +82,14 @@ Soldier.prototype.executeOrders = function () {
         //Check each possible case and perform its appropiate action either do nothing.
         switch (this.currentOrder.type) {
             case 'attack':
-                console.log('we should be attacking now');
-                if (this.currentOrder.done === false) {
-                    if(this.currentOrder.target.alive){
-                        if (this.currentOrder.method === 'once') {
-                            this.attack(this.currentOrder.attack, this.currentOrder.target);
-                            this.currentOrder.done = true;
-    
-                        } else if (this.currentOrder.method === 'multiple') {
-                            if(this.isInAttackRange(this.currentOrder.attack, this.currentOrder.target)){
-                                this.attack(this.currentOrder.attack, this.currentOrder.target);
-                            }else{
-                                this.currentOrder.done = true;
-                            }
-                        }
-                    }else{
-                        //nullify order so unit can assign next order
-                        this.clearOrder();
+                if (!this.currentOrder.done && this.currentOrder.target.alive) {
+                    if (this.currentOrder.method === 'once') {
+                        this.currentOrder.done = this.attack(this.currentOrder.attack, this.currentOrder.target);
+                    } else if (this.currentOrder.method === 'multiple') {
+                        this.currentOrder.done = this.attack(this.currentOrder.attack, this.currentOrder.target);;
                     }
 
-                }else{
+                } else {
                     //nullify order so unit can assign next order
                     this.clearOrder();
                 }
@@ -112,11 +105,11 @@ Soldier.prototype.executeOrders = function () {
 
 
 Soldier.prototype.update = function () {
-    if(this.alive){
+    if (this.alive) {
         Unit.prototype.update.call(this);
         this.brain.update(0);
     }
-    
+
 }
 
 

@@ -54,7 +54,7 @@ const Pawn = function (game, x, y, spriteName, player, attributes) {
             this.setHealth(this.maxHealth);
         }
     } else {
-        this.attributes.ms = 50;
+        this.attributes.ms = 250;
     }
 
 };
@@ -94,7 +94,6 @@ Pawn.prototype.move = function (xDir, yDir) {
     } else if (yDir = 'down') {
         this.body.moveDown(this.attributes.ms);
     }
-
 }
 
 /**

@@ -5,7 +5,7 @@ const pointToGrid = (x) =>{
         return undefined;
     }
     
-}
+};
 const gridToPoint = (x,atMiddle) =>{
     if(atMiddle){
         return 32 + x*64;
@@ -13,20 +13,19 @@ const gridToPoint = (x,atMiddle) =>{
         return x*64;
     }
     
-}
+};
 
 const findById = (id,game)=>{
-    for(let i = 0; i<game._units.length; i++){
-        const unit = game._units[i];
-        if(unit._id === id){
-            return unit;
+    for(var i = 0; i<game._units.length; i++){
+        if(game._units[i]._id === id){
+            return game._units[i];
         }
     }
     return false;
-}
+};
 
 module.exports ={
     pointToGrid,
     gridToPoint,
     findById
-}
+};

@@ -107,11 +107,21 @@ const getEnemies = function (teamId) {
 }
 
 onmessage = function (e) {
+
     //DATA PARSING
-    let { event, context } = e.data;
+    let context;
+    let event;
+    if (typeof e.data === 'object') {
+        event = e.data.event;
+        context = e.data.context;
+    } else if (typeof e.data === 'string') {
+        const data = JSON.parse(e.data);
+        event = data.event;
+        context = data.context;
 
+    }
 
-
+    //event handling
     switch (event) {
         case 'initializeContext':
             gameContext = context;
@@ -134,12 +144,16 @@ onmessage = function (e) {
                     let enemy = chooseTargetFrom(enemies, actor);
                     let maximumDamage = 0;
                     let optimalAttack = undefined;
-                    for (let i = 0; i < attacks.length; i++) {
-                        let attack = attacks[i];
-                        if (isInAttackRange(actor, attack, enemy)) {
-                            if (attack.damage > maximumDamage) {
-                                maximumDamage = attack.damage;
-                                optimalAttack = i;
+                    if(attacks.length === 1 && isInAttackRange(actor,attacks[0],enemy)){
+                        optimalAttack = 0;
+                    }else{
+                        for (let i = 0; i < attacks.length; i++) {
+                            let attack = attacks[i];
+                            if (isInAttackRange(actor, attack, enemy)) {
+                                if (attack.damage > maximumDamage) {
+                                    maximumDamage = attack.damage;
+                                    optimalAttack = i;
+                                }
                             }
                         }
                     }
@@ -149,8 +163,7 @@ onmessage = function (e) {
                         sendDynamicMovementOrder(event, enemy, actor);
                     }
                 } else {
-                    const
-                        x = Math.random() * windowData.width - 32,
+                    var x = Math.random() * windowData.width - 32,
                         y = Math.random() * windowData.height - 32;
                     sendStaticMovementOrder(event, x, y, actor);
                 }

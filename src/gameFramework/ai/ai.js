@@ -61,9 +61,8 @@ AI.prototype.parseUnitData = function (unit) {
 }
 
 AI.prototype.getGameContext = function () {
-    let units = [];
     let unitsArray = this.game._units;
-
+    let units = [];
     for (var i = 0; i < unitsArray.length; i++) {
         let gameObject = unitsArray[i];
         if (gameObject.alive) {
@@ -76,27 +75,27 @@ AI.prototype.getGameContext = function () {
         window: {
             height: window.innerHeight,
             width: window.innerWidth
-        } 
+        }
     }
 }
 
-AI.prototype.broadcastGameContext = function(){
+AI.prototype.broadcastGameContext = function () {
     const context = this.getGameContext();
     this.amountOfUnits = context.units.length;
-    this.game.__AIManager__.broadcast('setContext',context);
+    this.game.__AIManager__.broadcast('setContext', context);
 }
 
-AI.prototype.broadcastContextInitialization = function(){
+AI.prototype.broadcastContextInitialization = function () {
     const context = this.getGameContext();
     context.teams = [];
-    for(let i = 0; i < this.game._teams.length; i++){
+    for (let i = 0; i < this.game._teams.length; i++) {
         const team = this.game._teams[i];
         let allies = [];
         let enemies = [];
-        team.diplomacy.forEach((diplomacy,team,map)=>{
-            if(diplomacy === DiplomacyState.ALLY){
+        team.diplomacy.forEach((diplomacy, team, map) => {
+            if (diplomacy === DiplomacyState.ALLY) {
                 allies.push(team._id);
-            }else if (diplomacy === DiplomacyState.ENEMY){
+            } else if (diplomacy === DiplomacyState.ENEMY) {
                 enemies.push(team._id);
             }
         });
@@ -108,7 +107,7 @@ AI.prototype.broadcastContextInitialization = function(){
         });
     }
     this.amountOfUnits = context.units.length;
-    this.game.__AIManager__.broadcast('initializeContext',context);
+    this.game.__AIManager__.broadcast('initializeContext', context);
 }
 
 AI.prototype.choose = function (event, context) {
@@ -134,34 +133,27 @@ AI.prototype.addEventHandler = function (event, handler) {
 }
 
 AI.prototype.threadCallback = function (e) {
-    const event = e.data.event;
-    let isThereCallback = false
-    for (var eventHandler in this.eventCallbacks) {
-        if (this.eventCallbacks.hasOwnProperty(eventHandler)) {
-            if (eventHandler === event) {
-                isThereCallback = true;
-                this.eventCallbacks[eventHandler](e.data);
-            }
-        }
+    let event = e.data.event;
+    if (this.eventCallbacks[event]) {
+        this.eventCallbacks[eventHandler](e.data);
+        return;
     }
-    if (!isThereCallback) {
-        this.broadcastOrder(e.data);
-    }
+    this.broadcastOrder(e.data);
+
 }
 
 
 
-AI.prototype.update = function(init){
-    if(!this.nextContextUpdate || this.nextContextUpdate <= 0){
-        this.nextContextUpdate = 16 + this.amountOfUnits/Math.E;
-        if(init){
+AI.prototype.update = function (init) {
+    if (!this.nextContextUpdate || this.nextContextUpdate <= 0) {
+        this.nextContextUpdate = 1 + this.amountOfUnits / (Math.E * Math.PI);
+        if (init) {
             this.broadcastContextInitialization();
-        }else{
-            console.log('bradcasting context');
+        } else {
             this.broadcastGameContext();
         }
-        
-    }else{
+
+    } else {
         this.nextContextUpdate--;
     }
 }

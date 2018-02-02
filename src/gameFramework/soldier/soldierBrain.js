@@ -32,59 +32,19 @@ SoldierBrain.prototype.constructor = SoldierBrain;
 
 
 
-SoldierBrain.prototype.searchForEnemies = function () {
-    let enemies = [];
-    let unitsArray = this.game._units;
-    for (var i = 0; i < unitsArray.length; i++) {
-        let gameObject = unitsArray[i];
-        if (gameObject.owner.team.isEnemyOf(this.owner.team)) {
-            //TODO: Find out why the fuck does this function get called 450 times
-            if (gameObject.alive) {
-                enemies.push(gameObject);
-            }
-        }
-
-    }
-    return enemies;
-}
-
-
-//TODO: Move this parsing logic to the AI and synchronize it in a centralized 
-//      way with all workers, add team id and try to optimize data sent
-//Extract relevant data from the unit data structure
-SoldierBrain.prototype.parseUnitData = function (unit) {
+SoldierBrain.prototype.getHostContext = function(){
     return {
-        id: unit._id,
-        health: unit.health,
-        x: unit.x,
-        y: unit.y
-    };
-
-}
-
-SoldierBrain.prototype.searchUnits = function () {
-    let enemies = [];
-    let neutral = [];
-    let allies = [];
-    let unitsArray = this.game._units;
-    for (var i = 0; i < unitsArray.length; i++) {
-        let gameObject = unitsArray[i];
-        if (gameObject.alive) {
-            if (gameObject.owner.team.isEnemyOf(this.owner.team)) {
-                enemies.push(this.parseUnitData(gameObject));
-            } else if (gameObject.owner.team.isAllyOf(this.owner.team)) {
-                allies.push(this.parseUnitData(gameObject));
-            } else {
-                neutral.push(this.parseUnitData(gameObject));
-            }
-        }
-    }
-    return {
-        enemies,
-        neutral,
-        allies
+        team: this.host.owner.team._id,
+        health: this.host.health,
+        x: this.host.x,
+        y: this.host.y,
+        id: this.host._id,
+        attributes: this.host.attributes,
+        orders: this.sanitizeOrders()
     };
 }
+
+
 
 SoldierBrain.prototype.sanitizeOrders = function(){
     let orders = [];
@@ -105,70 +65,6 @@ SoldierBrain.prototype.sanitizeOrders = function(){
     return orders;
 }
 
-/*
-SoldierBrain.prototype.getHostContext = function () {
-    return {
-        units: this.searchUnits(),
-        actor: {
-            health: this.host.health,
-            x: this.host.x,
-            y: this.host.y,
-            id: this.host._id,
-            attributes: this.host.attributes,
-            orders: this.sanitizeOrders()
-        },
-        window: {
-            height: window.innerHeight,
-            width: window.innerWidth
-        },
-    };
-}
-*/
-
-
-//TODO: implement strength check to go for closest and weakest target
-SoldierBrain.prototype.chooseTarget = function (enemies) {
-    //fallback optimal target
-    let optimalTarget = enemies[0];
-    let minimumDistance = 90000;
-    //loop all enemies and save the closest target on memory
-    for (var i = 0; i < enemies.length; i++) {
-        let enemy = enemies[i];
-        let distance = Math.sqrt((enemy.x - this.host.x) ** 2 + (enemy.y - this.host.y) ** 2);
-        if (distance < minimumDistance) {
-            minimumDistance = distance;
-            optimalTarget = enemy;
-        }
-    }
-    //return closest target
-    return optimalTarget;
-}
-
-//orders its host to attack the target multiple times until it dies or goes out of range
-SoldierBrain.prototype.orderAttack = function (attackIndex, target) {
-    this.host.orders.push({
-        type: 'attack',
-        method: 'multiple',
-        done: false,
-        target,
-        attack: attackIndex,
-    });
-}
-
-
-
-
-SoldierBrain.prototype.getHostContext = function(){
-    return {
-        team: this.host.owner.team._id,
-        health: this.host.health,
-        x: this.host.x,
-        y: this.host.y,
-        id: this.host._id,
-        attributes: this.host.attributes,
-        orders: this.sanitizeOrders()
-    };
-}
 
 
 //BENCHMARKS: every unit calls this 9.2 times each second, creating a bottleneck 
@@ -184,18 +80,14 @@ SoldierBrain.prototype.update = function (context) {
     /* Second iteration, event based system to communicate with AI*/
 
     if (this.host.orders.length < 1) {
-        this._events.REQUEST_AI_UPDATE = true;
+        this.owner.AI.choose('soldierAI', this.getHostContext());
     } else {
         if (this.host.currentOrder &&
             this.host.currentOrder.type === "dynamicMovement"&&
-            this.__counter % 100 !== 0
+            this.__counter % 520 === 0
         ) {
-            this._events.REQUEST_AI_UPDATE = true;
+            this.owner.AI.choose('soldierAI', this.getHostContext());
         }
-    }
-    if (this._events.REQUEST_AI_UPDATE) {
-        this._events.REQUEST_AI_UPDATE = false;
-        this.owner.AI.choose('soldierAI', this.getHostContext());
     }
 }
 

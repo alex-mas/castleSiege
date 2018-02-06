@@ -28,6 +28,11 @@ const Pawn = function (game, x, y, spriteName, player, attributes) {
     Phaser.Sprite.call(this, game, x, y,'frames',spriteName);
     game.add.existing(this);
     game.physics.p2.enable(this);
+    this.body.mass = 15+Math.random()*45;
+    this.body.clearShapes();
+    this.body.addCircle(16);
+    //this.body.debug = true;
+    //this.body.kinematic = true;
 
     //set the owner of the unit type checking
     if (player) {
@@ -54,7 +59,7 @@ const Pawn = function (game, x, y, spriteName, player, attributes) {
             this.setHealth(this.maxHealth);
         }
     } else {
-        this.attributes.ms = 250;
+        this.attributes.ms = 125;
     }
 
 };
@@ -63,8 +68,17 @@ const Pawn = function (game, x, y, spriteName, player, attributes) {
 Pawn.prototype = Object.create(Phaser.Sprite.prototype);
 Pawn.prototype.constructor = Pawn;
 
-
-
+//TODO: Find why this breaks pathfinding worker completely, it doesn't seem to make much sense
+Pawn.prototype.kill = function(){
+    Phaser.Sprite.prototype.kill.call(this);
+    let index = this.game._units.indexOf(this);
+    if(index > -1){
+        this.game._units.splice(this, 1);
+    }
+    this.game._unitIds[this._id] = undefined;
+    this.body.destroy();
+    this.destroy();
+}
 
 
 

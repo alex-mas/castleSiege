@@ -16,12 +16,11 @@ const gridToPoint = (x,atMiddle) =>{
 };
 
 const findById = (id,game)=>{
-    for(var i = 0; i<game._units.length; i++){
-        if(game._units[i]._id === id){
-            return game._units[i];
-        }
+    if(game._unitIds[id]){
+        return game._unitIds[id];
+    }else{
+        return false;
     }
-    return false;
 };
 
 module.exports ={

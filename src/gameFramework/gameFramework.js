@@ -8,6 +8,7 @@ const Player = require('./player/player.js');
 const Team = require('./team/team.js');
 const AI = require('./ai/ai');
 const ThreadManager = require('./threadManager/threadManager.js');
+const utils = require('./utils/utils.js');
 
 //TODO: Perform unit tests on individual classes
 //TODO: Document classes
@@ -22,7 +23,8 @@ module.exports = {
     Player,
     Team,
     ThreadManager,
-    AI
+    AI,
+    utils
 };
 
 

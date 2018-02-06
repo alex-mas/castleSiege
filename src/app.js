@@ -27,7 +27,7 @@ import env from "env";
 
 
 const config = {
-    width: window.innerWidth, 
+    width: window.innerWidth,
     height: window.innerHeight,
     renderer: Phaser.WEBGL_MULTI,
     canvasId: 'app',
@@ -35,11 +35,11 @@ const config = {
     multiTexture: true,
     roundPixels: true,
     enableDebug: false,
-    state: { 
-        preload: preload, 
-        create: create, 
-        update: update, 
-        render: render 
+    state: {
+        preload: preload,
+        create: create,
+        update: update,
+        render: render
     }
 }
 let game = new Phaser.Game(config);
@@ -50,6 +50,7 @@ const __srcdir = __dirname + '../src';
 /*Phaser game customitzations*/
 
 game._units = [];
+game._unitIds = {};
 
 game.grid = {
     tileGrid: [],
@@ -59,12 +60,11 @@ game.grid = {
 game.__pathfinder__ = new gameFramework.ThreadManager(__dirname, '/gameFramework/workers/pathfinding.js', {
     amountOfWorkers: 2,
 }, function (e) {
-    for (let i = 0; i < game._units.length; i++) {
-        const unit = game._units[i];
-        if (unit._id == e.data.id) {
-            unit.onPathResult(e.data.path);
-        }
+    const unit = gameFramework.utils.findById(e.data.id,game);
+    if (unit) {
+        unit.onPathResult(e.data.path);
     }
+
 });
 
 game.grid.onChange = function () {
@@ -77,7 +77,7 @@ game.__AIManager__ = new gameFramework.ThreadManager(
     __dirname,
     '/gameFramework/workers/AIWorker.js',
     {
-        amountOfWorkers: (CPU_COUNT*1.5),
+        amountOfWorkers: (CPU_COUNT * 1.5),
         sendingMethod: "regular"
     }
 );
@@ -108,37 +108,16 @@ regularAi.update(true);
 
 
 function preload() {
-    if(env.name !== "production"){
+    if (env.name !== "production") {
+        //WARNING: this has been reported to reduce performance substantially but its the only way to enable fps checking ingame
         game.time.advancedTiming = true;
     }
     logger.verbose({
         message: 'preloading assets...'
     });
 
-    game.load.atlasJSONHash('frames','./../resources/spritesheets/spritesheet2.png','./../resources/spritesheets/spritesheet2.json');
-    /* ---- old asset loading -----
-    for (var i = 1; i <= 538; i++) {
-        if (unexistentAsset(i)) {
-            continue;
-        }
-        if (i < 10) {
-            logger.silly({
-                message: `loaded tile_${i} from ./../resources/tiles/tile_${i}.png`
-            });
-            game.load.image(`tile_${i}`, `./../resources/tiles/tile_0${i}.png`);
-        } else {
-            logger.silly({
-                message: `loaded tile_${i} from ./../resources/tiles/tile_${i}.png`
-            });
-            game.load.image(`tile_${i}`, `./../resources/tiles/tile_${i}.png`);
-        }
-    }
-    game.load.image(`king`, `./../resources/structures/king.png`);
-    game.load.image(`knight_blue`, `./../resources/structures/knightBlue.png`);
-    game.load.image(`knight_red`, `./../resources/structures/knightRed.png`);
-    game.load.image(`axe_red`, `./../resources/units/axeRed.png`);
-    game.load.image(`axe_blue`, `./../resources/units/axeBlue.png`);
-    */
+    game.load.atlasJSONHash('frames', './../resources/spritesheets/spritesheet2.png', './../resources/spritesheets/spritesheet2.json');
+
     logger.debug({
         message: '...Finished preloading assets'
     });
@@ -153,7 +132,7 @@ function paintWorldGround() {
         game.grid.tileGrid[i] = [];
         for (var j = 0; j < window.innerWidth / 64; j++) {
             var spriteNumber = 1 + Math.round(Math.random() * 5);
-            game.grid.tileGrid[i][j] = game.add.sprite(64 * j, 64 * i, 'frames',`tile_0${spriteNumber}.png`);
+            game.grid.tileGrid[i][j] = game.add.sprite(64 * j, 64 * i, 'frames', `tile_0${spriteNumber}.png`);
             if (spriteNumber >= 7) {
                 game.grid.collisionGrid[i][j] = 1;
             } else {
@@ -168,6 +147,18 @@ function create() {
 
     game.renderer.setTexturePriority(['frames']);
     game.physics.startSystem(Phaser.Physics.P2JS);
+
+    /*       Physics custom configuration        */
+    //TODO: Optimize individual object configurations to avoid undesired computations
+    //950 units yielded average of 13 fps on combat and with this config yield 19-20 fps
+    game.physics.p2.emitImpactEvent = false;
+    game.physics.p2.applyGravity = false;
+    game.physics.p2.applyDamping = false;
+    game.physics.p2.applySpringForces = false;
+    game.physics.p2.friction = 0;
+    game.physics.p2.frameRate = 1/60;
+
+    
     paintWorldGround();
     game.__pathfinder__.broadcast('setGrid', {
         grid: game.grid.collisionGrid
@@ -176,7 +167,7 @@ function create() {
     //instantiate all the units in recrangular formation
     for (let j = 0; j < 25; j++) {
         for (let i = 0; i < 30; i++) {
-            game._units.push(new gameFramework.Soldier(
+            let unit = new gameFramework.Soldier(
                 game,
                 32 + 32 * j,
                 32 + 32 * i,
@@ -188,12 +179,12 @@ function create() {
                     attack: [{
                         isOnCd: false,
                         cd: 456,
-                        damage: 30,
-                        range: 45
+                        damage: 90,
+                        range: 63
                     }]
                 }
-            ));
-            game._units.push(new gameFramework.Soldier(
+            );
+            let unit2 = new gameFramework.Soldier(
                 game,
                 (window.innerWidth - 32) - 32 * j,
                 32 + 32 * i,
@@ -205,13 +196,18 @@ function create() {
                     attack: [{
                         isOnCd: false,
                         cd: 456,
-                        damage: 30,
-                        range: 45
+                        damage: 90,
+                        range: 63
                     }]
                 }
-            ));
+            );
+            game._units.push(unit, unit2);
+            game._unitIds[unit._id] = unit;
+            game._unitIds[unit2._id] = unit2;
         }
     }
+    console.log(game._unitIds);
+    console.log(game._units);
 
 
 }
@@ -220,7 +216,7 @@ function create() {
 function update() {
     console.log(game.time.fps);
     regularAi.update();
-    
+
     //custom game update logic, most logic is called on the update methods of instantiated game objects tho
 }
 

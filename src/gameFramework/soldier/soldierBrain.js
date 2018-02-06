@@ -1,10 +1,12 @@
 
+
 window.PIXI = require('phaser-ce/build/custom/pixi');
 window.p2 = require('phaser-ce/build/custom/p2');
 window.Phaser = require('phaser-ce/build/custom/phaser-split');
 const Unit = require('../unit/unit.js');
 const Brain = require('../brain/brain.js');
 const Team = require('../team/team.js');
+const utils = require('../utils/utils.js');
 
 
 /**
@@ -21,9 +23,6 @@ const Team = require('../team/team.js');
 const SoldierBrain = function (game, host, owner) {
     Brain.call(this, game, host, owner);
     this.__counter = 0;
-    this._events = {
-        REQUEST_AI_UPDATE: false
-    }
 }
 
 SoldierBrain.prototype = Object.create(Brain.prototype);
@@ -80,12 +79,20 @@ SoldierBrain.prototype.update = function (context) {
     /* Second iteration, event based system to communicate with AI*/
 
     if (this.host.orders.length < 1) {
+       // console.log('requesting ai computation');
         this.owner.AI.choose('soldierAI', this.getHostContext());
+        this._computing = true;
     } else {
         if (this.host.currentOrder &&
             this.host.currentOrder.type === "dynamicMovement"&&
-            this.__counter % 520 === 0
+            this.__counter % 321 === 0
         ) {
+           /* if(this.__counter > 2300){
+                console.log(this.host.orders);
+                console.log(this.host.orders[0].target.alive);
+            }*/
+            //console.log('requesting ai computation');
+            this._computing = true;
             this.owner.AI.choose('soldierAI', this.getHostContext());
         }
     }

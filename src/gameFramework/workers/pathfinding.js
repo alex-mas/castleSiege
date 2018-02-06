@@ -19,10 +19,18 @@ onmessage = function (e) {
             const id = data.id;
             const targetX = utils.pointToGrid(data.to[0]),
                 targetY = utils.pointToGrid(data.to[1]);
-            postMessage({
-                path: defaultFinder.findPath(data.from[0], data.from[1], targetX, targetY, localGrid),
-                id
-            });
+            if(targetX && targetY){
+                postMessage({
+                    path: defaultFinder.findPath(data.from[0], data.from[1], targetX, targetY, localGrid),
+                    id
+                });
+            }else{
+                postMessage({
+                    path: [],
+                    id
+                });
+            }
+
             break;
         case 'setGrid':
             gridData = data.grid;

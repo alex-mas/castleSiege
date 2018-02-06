@@ -43,7 +43,6 @@ Unit.prototype.constructor = Unit;
  */
 Unit.prototype.computeMove = function (x, y) {
     this.currentOrder.beingComputed = true;
-    this.___timer___ = new Date();
     this.game.__pathfinder__.distributeWork('findPath', {
         from: [this.gridX, this.gridY],
         to: [x, y],
@@ -63,6 +62,7 @@ Unit.prototype.executeMove = function () {
         //check if the pawn is inside the grid coordinates of the next point
         if (this.gridX === nextMoveStep[0] && this.gridY === nextMoveStep[1]) {
             //remove the next point from the points array and reassign next step
+            //TODO: Change this as removing elements from an array greatly reduces the performance
             this.currentOrder.points.splice(0, 1);
         } else {
             //iterate deciding the direction to move
@@ -92,8 +92,9 @@ Unit.prototype.onPathResult = function (path) {
     //Warning: if other orders isue path computation requests we will need to account for them here
     if (this.currentOrder &&
         (this.currentOrder.type === 'staticMovement' ||
-            this.currentOrder.type === 'dynamicMovement')) {
-        if (path.length) {
+            this.currentOrder.type === 'dynamicMovement')
+    ) {
+        if (path.length != 0) {
             this.currentOrder.points = path;
             this.currentOrder.computed = true;
             this.currentOrder.beingComputed = false;
@@ -149,7 +150,6 @@ Unit.prototype.executeOrders = function () {
             //WARNING: we keep the original order of the array intact, that is, we might just stay in a bucle giving ourselves the same order over and over
             //TODO: decide if we splice it on each order bases or we do it centralized here and if we do it here try to make the change without breaking the code
             this.currentOrder = this.orders[0];
-
         } else {
             return;
         }
@@ -157,6 +157,7 @@ Unit.prototype.executeOrders = function () {
     }
     //Check each possible case and perform its appropiate action either do nothing.
     switch (this.currentOrder.type) {
+
         case 'staticMovement':
             if (this.currentOrder.computed) {
                 this.executeMove();
@@ -173,13 +174,17 @@ Unit.prototype.executeOrders = function () {
                 this.clearOrder();
             } else {
                 //check if target has moved from its grid position
+                //TODO: Problem with undesired unit behaviour seem to be related to workers not responding
                 if (
                     this.currentOrder.points === undefined ||
+                    this.currentOrder.points.length === 0 ||
                     targetX !== this.currentOrder.points[this.currentOrder.points.length - 1][0] ||
                     targetY !== this.currentOrder.points[this.currentOrder.points.length - 1][1]
                 ) {
                     if (!this.currentOrder.beingComputed) {
-                        this.computeMove(this.currentOrder.target.x, this.currentOrder.target.y);
+                        if (this.currentOrder.target.x && this.currentOrder.target.x) {
+                            this.computeMove(this.currentOrder.target.x, this.currentOrder.target.y);
+                        }
                     }
                 }
                 if (this.currentOrder.computed) {

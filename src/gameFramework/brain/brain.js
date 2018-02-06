@@ -9,26 +9,35 @@ const {findById} = require('../utils/utils');
  */
 const Brain = function(game,host,owner){
     //the pawn/unit that will be hosting this brain
+    this._computing = false;
     this.game = game;
     this.host = host;
     this.owner = owner;
 };
 
 
-Brain.prototype.onAIOrder = function(order){ 
+Brain.prototype.onAIOrder = function(order){
+    this._computing = false;
+    let correctOrder = false;
     if(order.target){
         const target = findById(order.target,this.game);
         if(target){
+            correctOrder = true;
             order.targetId = order.target;
             order.target = target; 
         }else{
-            throw new Error('Unable to find target');
+            //console.warn('Unable to find target');
+        }
+    }else{
+        correctOrder = true;
+    }
+    if(correctOrder){
+        this.host.orders.push(order);
+        if(order.replace){
+            this.host.clearOrder();
         }
     }
-    this.host.orders.push(order);
-    if(order.replace){
-        this.host.clearOrder();
-    }
+    
     
 }
 

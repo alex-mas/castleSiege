@@ -60,7 +60,7 @@ game.grid = {
 game.__pathfinder__ = new gameFramework.ThreadManager(__dirname, '/gameFramework/workers/pathfinding.js', {
     amountOfWorkers: 2,
 }, function (e) {
-    const unit = gameFramework.utils.findById(e.data.id,game);
+    const unit = gameFramework.utils.findById(e.data.id, game);
     if (unit) {
         unit.onPathResult(e.data.path);
     }
@@ -103,8 +103,6 @@ game._players.push(redPlayer);
 game._players.push(bluePlayer);
 
 
-//basic initialization
-regularAi.update(true);
 
 
 function preload() {
@@ -134,6 +132,10 @@ function paintWorldGround() {
             var spriteNumber = 1 + Math.round(Math.random() * 5);
             game.grid.tileGrid[i][j] = game.add.sprite(64 * j, 64 * i, 'frames', `tile_0${spriteNumber}.png`);
             if (spriteNumber >= 7) {
+                game.physics.p2.enable(game.grid.tileGrid[i][j]);
+                game.grid.tileGrid[i][j].body.dynamic = false;
+                game.grid.tileGrid[i][j].anchor.x = 0;
+                game.grid.tileGrid[i][j].anchor.y = 0;
                 game.grid.collisionGrid[i][j] = 1;
             } else {
                 game.grid.collisionGrid[i][j] = 0;
@@ -156,10 +158,13 @@ function create() {
     game.physics.p2.applyDamping = false;
     game.physics.p2.applySpringForces = false;
     game.physics.p2.friction = 0;
-    game.physics.p2.frameRate = 1/60;
+    game.physics.p2.frameRate = 1 / 60;
 
-    
+
     paintWorldGround();
+    //basic initialization
+    regularAi.update(true, true);
+
     game.__pathfinder__.broadcast('setGrid', {
         grid: game.grid.collisionGrid
     });

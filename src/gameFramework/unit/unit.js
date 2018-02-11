@@ -94,7 +94,7 @@ Unit.prototype.onPathResult = function (path) {
         (this.currentOrder.type === 'staticMovement' ||
             this.currentOrder.type === 'dynamicMovement')
     ) {
-        if (path.length != 0) {
+        if (path.length > 0) {
             this.currentOrder.points = path;
             this.currentOrder.computed = true;
             this.currentOrder.beingComputed = false;
@@ -157,8 +157,8 @@ Unit.prototype.executeOrders = function () {
     }
     //Check each possible case and perform its appropiate action either do nothing.
     switch (this.currentOrder.type) {
-
         case 'staticMovement':
+            this.body.debug = true;
             if (this.currentOrder.computed) {
                 this.executeMove();
             } else if (!this.currentOrder.beingComputed) {
@@ -172,7 +172,10 @@ Unit.prototype.executeOrders = function () {
             //check if we have arrived at destination
             if (this.gridX === targetX && this.gridY === targetY) {
                 this.clearOrder();
-            } else {
+            }/*else if (!this.currentOrder.target.alive && !this.brain._computing) {
+                //console.log(this.currentOrder.target);
+                //this.clearOrder();
+            } */else {
                 //check if target has moved from its grid position
                 //TODO: Problem with undesired unit behaviour seem to be related to workers not responding
                 if (
@@ -182,8 +185,10 @@ Unit.prototype.executeOrders = function () {
                     targetY !== this.currentOrder.points[this.currentOrder.points.length - 1][1]
                 ) {
                     if (!this.currentOrder.beingComputed) {
-                        if (this.currentOrder.target.x && this.currentOrder.target.x) {
+                        if (this.currentOrder.target.x !== undefined && this.currentOrder.target.x !== undefined) {
                             this.computeMove(this.currentOrder.target.x, this.currentOrder.target.y);
+                        } else {
+                            this.clearOrder();
                         }
                     }
                 }

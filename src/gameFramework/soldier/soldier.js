@@ -95,7 +95,7 @@ Soldier.prototype.executeOrders = function () {
                 }
 
                 break;
-            default:
+            default: 
                 break;
         }
 

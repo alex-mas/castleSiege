@@ -28,6 +28,8 @@ Brain.prototype.onAIOrder = function(order){
         }else{
             //console.warn('Unable to find target');
         }
+    }else if(order.error){
+        
     }else{
         correctOrder = true;
     }

@@ -6,6 +6,9 @@ const chooseTargetFrom = function (enemies, actor) {
     //loop all enemies and save the closest target on memory
     for (var i = 0; i < enemies.length; i++) {
         let enemy = enemies[i];
+        if(enemy.health < 0){
+            continue;
+        }
         let distance = Math.sqrt((enemy.x - actor.x) ** 2 + (enemy.y - actor.y) ** 2);
         if (distance < minimumDistance) {
             minimumDistance = distance;
@@ -25,6 +28,18 @@ const isInAttackRange = function (actor, attack, enemy) {
     } else {
         return false
     }
+}
+
+
+const sendEmptyOrder = function(event,actor, error){
+    postMessage({
+        event: event,
+        order: {
+            error,
+            replace: false
+        },
+        actor: actor.id
+    });
 }
 
 const sendAttackOrder = function (event, attackIndex, target, actor, replaceOrder = false) {
@@ -130,6 +145,9 @@ onmessage = function (e) {
         case 'setContext':
             gameContext.units = context.units;
             gameContext.window = context.window;
+            if(context.grid){
+                gameContext.grid = context.grid;
+            }
             distributeUnits();
             break;
         case 'soldierAI':
@@ -138,15 +156,29 @@ onmessage = function (e) {
             const attacks = actor.attributes.attack;
             const orders = actor.orders;
             const windowData = gameContext.window;
-            if (orders.length < 1) {
+            if (orders.length < 1) {   
                 let enemies = getEnemies(actor.team);
+                //if(gameContext.units.length < 350){
+                   // console.log(enemies);
+                //}
                 if (enemies.length > 0) {
                     let enemy = chooseTargetFrom(enemies, actor);
+                    if(!enemy){
+                        console.warn('enemy not found');
+                    }
                     let maximumDamage = 0;
                     let optimalAttack = undefined;
-                    if(attacks.length === 1 && isInAttackRange(actor,attacks[0],enemy)){
-                        optimalAttack = 0;
-                    }else{
+                    let shouldCheckAttacks = true;
+                    if(attacks.length === 1){
+                        if(isInAttackRange(actor,attacks[0],enemy)){
+                            optimalAttack = 0;
+                        }else{
+                            shouldCheckAttacks = false;
+                        }
+                       
+                    }else if(attacks.length < 1){
+                        shouldCheckAttacks = false;
+                    }else if(shouldCheckAttacks){
                         for (let i = 0; i < attacks.length; i++) {
                             let attack = attacks[i];
                             if (isInAttackRange(actor, attack, enemy)) {
@@ -158,6 +190,7 @@ onmessage = function (e) {
                         }
                     }
                     if (optimalAttack !== undefined) {
+
                         sendAttackOrder(event, optimalAttack, enemy, actor);
                     } else {
                         sendDynamicMovementOrder(event, enemy, actor);
@@ -166,6 +199,7 @@ onmessage = function (e) {
                     var x = Math.random() * windowData.width - 32,
                         y = Math.random() * windowData.height - 32;
                     sendStaticMovementOrder(event, x, y, actor);
+
                 }
             } else {
                 if (orders[0].type === "dynamicMovement") {
@@ -190,8 +224,11 @@ onmessage = function (e) {
                                 sendDynamicMovementOrder(event, enemy, actor, true);
                             }
                         }
-                    }
-                }
+                    }else{
+                        sendEmptyOrder(event,actor,'ERROR: no enemy units found and unit has dynamic mov order');
+                    }            
+                }           
+                sendEmptyOrder(event,actor,'ERROR: more than one order and first order isnt of type dynamic movement');
             }
             break;
         default:

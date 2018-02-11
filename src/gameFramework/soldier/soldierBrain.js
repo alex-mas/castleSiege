@@ -68,8 +68,7 @@ SoldierBrain.prototype.sanitizeOrders = function(){
 
 //BENCHMARKS: every unit calls this 9.2 times each second, creating a bottleneck 
 //due to the structured clone of web workers
-//TODO: Give only order specific information to AI after the context broadcasting
-//      is refactored there
+
 //executed on game loop, determines the course of action given a context
 SoldierBrain.prototype.update = function (context) {
 
@@ -77,7 +76,9 @@ SoldierBrain.prototype.update = function (context) {
     this.__counter++;
 
     /* Second iteration, event based system to communicate with AI*/
-
+    if(this._computing){
+        return;
+    }
     if (this.host.orders.length < 1) {
        // console.log('requesting ai computation');
         this.owner.AI.choose('soldierAI', this.getHostContext());

@@ -65,9 +65,9 @@ AI.prototype.getGameContext = function () {
     let units = [];
     for (var i = 0; i < unitsArray.length; i++) {
         let gameObject = unitsArray[i];
-        if (gameObject.alive) {
+        //if (gameObject.alive) {
             units.push(this.parseUnitData(gameObject));
-        }
+        //}
     }
 
     return {
@@ -79,8 +79,11 @@ AI.prototype.getGameContext = function () {
     }
 }
 
-AI.prototype.broadcastGameContext = function () {
+AI.prototype.broadcastGameContext = function (updateGrid) {
     const context = this.getGameContext();
+    if(updateGrid){
+        context.grid = this.game.grid.collisionGrid;
+    }
     this.amountOfUnits = context.units.length;
     this.game.__AIManager__.broadcast('setContext', context);
 }
@@ -106,6 +109,7 @@ AI.prototype.broadcastContextInitialization = function () {
             units: []
         });
     }
+    context.grid = this.game.grid.collisionGrid;
     this.amountOfUnits = context.units.length;
     this.game.__AIManager__.broadcast('initializeContext', context);
 }
@@ -144,13 +148,13 @@ AI.prototype.threadCallback = function (e) {
 
 
 
-AI.prototype.update = function (init) {
+AI.prototype.update = function (init, updateGrid) {
     if (!this.nextContextUpdate || this.nextContextUpdate <= 0) {
         this.nextContextUpdate = 1 + this.amountOfUnits / (Math.E * Math.PI);
         if (init) {
             this.broadcastContextInitialization();
         } else {
-            this.broadcastGameContext();
+            this.broadcastGameContext(updateGrid);
         }
 
     } else {

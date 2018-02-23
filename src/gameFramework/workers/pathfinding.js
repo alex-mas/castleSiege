@@ -1,9 +1,8 @@
 const pathfinder = require('../customPathfinding/index.js');
 const utils = require('../utils/utils.js');
 
-let gridData = [];
+let gridData = {};
 
-let grid = {};
 
 let defaultFinder = new pathfinder.AStarFinder({
     allowDiagonal: true,
@@ -15,26 +14,33 @@ onmessage = function (e) {
     const event = e.data.event;
     switch (event) {
         case 'findPath':
-            const localGrid = new pathfinder.Grid(gridData);
+            const level = data.level || 0;
+            
             const id = data.id;
             const targetX = utils.pointToGrid(data.to[0]),
                 targetY = utils.pointToGrid(data.to[1]);
+            if(gridData[level][targetY][targetX] != 0){
+                postMessage({path:[],id});
+                return;
+            }
+            const localGrid = new pathfinder.Grid(gridData[level]);
             if(targetX != undefined && targetY != undefined){
                 postMessage({
                     path: defaultFinder.findPath(data.from[0], data.from[1], targetX, targetY, localGrid),
                     id
                 });
+                return;
             }else{
                 postMessage({
                     path: [],
                     id
                 });
+                return;
             }
 
             break;
         case 'setGrid':
             gridData = data.grid;
-            grid = new pathfinder.Grid(data.grid);
             break;
         case 'configureFinder':
             defaultFinder = new pathfinder[data.finder]({

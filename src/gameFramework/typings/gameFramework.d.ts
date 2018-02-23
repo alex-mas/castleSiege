@@ -30,6 +30,7 @@ declare module gameFramework {
     export class AI{
         static update():void;
         static atStart():void;
+        static parseUnitData(unit: gameFramework.Unit): object;
     }
     export class Team{
         static public name: string;
@@ -55,13 +56,21 @@ declare module gameFramework {
     export class Brain{
 
     }
-    export class SoldierBrain extends gameFramework.Brain{
+    export class SoldierBrain extends Brain{
 
     }
     export class Pawn extends Phaser.Sprite{
+        public altitudeLayer: number;
+        gridX: number;
+        gridY: number;
+        setAltitudeLayer(num: number): void;
+        setGridPosition():void;
+        move(dirV: string, dirH: string): void;
+        stop(): void;
+        abstract update(): void;
 
     }
-    export class Unit extends gameFramework.Pawn{
+    export class Unit extends Pawn{
         orders: Array[object];
         currentOrder: any|object;
         static pathfinder:{
@@ -71,7 +80,7 @@ declare module gameFramework {
         static executeOrders(): void;
         static update(): void;
     }
-    export class Soldier extends gameFramework.Unit{
+    export class Soldier extends Unit{
         constructor(game: Phaser.Game, x: number, y: number, spriteName: string, player:gameFramework.Player, attribute: object, brain: gameFramework.Brain|gameFramework.SoldierBrain);
         static brain: gameFramework.Brain|gameFramework.SoldierBrain;
         static status: object;

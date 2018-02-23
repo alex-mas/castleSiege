@@ -7,7 +7,7 @@ const Player = require('../player/player.js');
 
 
 /**
- * @typedef {Pawn} Unit
+ * @extends {gameframework.Pawn}
  * @param {Phaser.Game} game - reference to the game where the unit is being instantiated
  * @param {Number} x - x point where the unit is being created
  * @param {Number} y - y point where the unit is being created
@@ -35,6 +35,8 @@ Unit.prototype = Object.create(Pawn.prototype);
 Unit.prototype.constructor = Unit;
 
 
+
+
 /**
  *
  *
@@ -46,7 +48,8 @@ Unit.prototype.computeMove = function (x, y) {
     this.game.__pathfinder__.distributeWork('findPath', {
         from: [this.gridX, this.gridY],
         to: [x, y],
-        id: this._id
+        id: this._id,
+        level: this.altitudeLayer
     });
 }
 
@@ -158,7 +161,6 @@ Unit.prototype.executeOrders = function () {
     //Check each possible case and perform its appropiate action either do nothing.
     switch (this.currentOrder.type) {
         case 'staticMovement':
-            this.body.debug = true;
             if (this.currentOrder.computed) {
                 this.executeMove();
             } else if (!this.currentOrder.beingComputed) {
@@ -199,6 +201,7 @@ Unit.prototype.executeOrders = function () {
             }
             break;
         default:
+            
             break;
     }
 }

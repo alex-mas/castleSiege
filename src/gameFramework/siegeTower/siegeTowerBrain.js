@@ -12,26 +12,27 @@ const utils = require('../utils/utils.js');
 /**
  * 
  * 
- * @name SoldierBrain
- * @class SoldierBrain
- * @classdesc higher level AI logic container specificaly made for basic soldiers. implements target and movement decisions
+ * @name SiegeTowerBrain
+ * @class SiegeTowerBrain
+ * @classdesc higher level AI logic container specificaly made for basic SiegeTowers. implements target and movement decisions
  * @extends Brain 
  * @param {Phaser.Game} game - reference to the game instance where the brain is created
  * @param {Unit} host - reference to the unit that will be managed by the brain
  * @param {Player} owner -reference to the player that owns the brain
  */
-const SoldierBrain = function (game, host, owner) {
+const SiegeTowerBrain = function (game, host, owner) {
     Brain.call(this, game, host, owner);
     this.__counter = 0;
+    this.isHostSettled = false;
 }
 
-SoldierBrain.prototype = Object.create(Brain.prototype);
-SoldierBrain.prototype.constructor = SoldierBrain;
+SiegeTowerBrain.prototype = Object.create(Brain.prototype);
+SiegeTowerBrain.prototype.constructor = SiegeTowerBrain;
 
 
 
 
-SoldierBrain.prototype.getHostContext = function(){
+SiegeTowerBrain.prototype.getHostContext = function(){
     return {
         team: this.host.owner.team._id,
         health: this.host.health,
@@ -46,7 +47,7 @@ SoldierBrain.prototype.getHostContext = function(){
 
 
 
-SoldierBrain.prototype.sanitizeOrders = function(){
+SiegeTowerBrain.prototype.sanitizeOrders = function(){
     let orders = [];
     for(let i = 0; i <this.host.orders.length; i++){
         const order = this.host.orders[i];
@@ -71,18 +72,21 @@ SoldierBrain.prototype.sanitizeOrders = function(){
 //due to the structured clone of web workers
 
 //executed on game loop, determines the course of action given a context
-SoldierBrain.prototype.update = function (context) {
+SiegeTowerBrain.prototype.update = function (context) {
 
     Brain.prototype.update.call(this, context);
     this.__counter++;
-
+    if(this.__counter > 500){
+        this.host.settle();
+    }
+    
     /* Second iteration, event based system to communicate with AI*/
-    if(this._computing){
+    if(this._computing || this.isHostSettled){
         return;
     }
     if (this.host.orders.length < 1) {
        // console.log('requesting ai computation');
-        this.owner.AI.choose('soldierAI', this.getHostContext());
+        this.owner.AI.choose('siegeTowerAI', this.getHostContext());
         this._computing = true;
     } else {
         if (this.host.currentOrder &&
@@ -95,10 +99,11 @@ SoldierBrain.prototype.update = function (context) {
             }*/
             //console.log('requesting ai computation');
             this._computing = true;
-            this.owner.AI.choose('soldierAI', this.getHostContext());
+            this.owner.AI.choose('siegeTowerAI', this.getHostContext());
         }
     }
+
 }
 
 
-module.exports = SoldierBrain;
+module.exports = SiegeTowerBrain;

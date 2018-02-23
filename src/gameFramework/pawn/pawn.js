@@ -26,13 +26,17 @@ const Pawn = function (game, x, y, spriteName, player, attributes) {
     //parent constructor
     //  We call the Phaser.Sprite passing in the game reference
     Phaser.Sprite.call(this, game, x, y,'frames',spriteName);
-    game.add.existing(this);
     game.physics.p2.enable(this);
-    this.body.mass = 15+Math.random()*45;
-    this.body.clearShapes();
-    this.body.addCircle(16);
-    //this.body.debug = true;
-    //this.body.kinematic = true;
+    game.add.existing(this);
+    
+    if(this.__type__ != 'siegeTower'){
+        this.body.mass = 155+Math.random()*45;
+        this.body.clearShapes();
+        this.body.addCircle(16);
+        //this.body.debug = true;
+        //this.body.kinematic = true;
+    }
+
 
     //set the owner of the unit type checking
     if (player) {
@@ -43,8 +47,19 @@ const Pawn = function (game, x, y, spriteName, player, attributes) {
 
 
     //initialize grid positions
-    this.setGridPosition();
+    this.gridX = utils.pointToGrid(x);
+    this.gridY = utils.pointToGrid(y);
 
+    //initialize altitude
+    this.altitudeLayer;
+    this.setAltitudeLayer();
+    if(this.altitudeLayer === 1){
+        this.body.debug = true;
+    }
+
+    //initialize collision data
+    this.updateCollisionGroup();
+    this.updateCollisionParams();
 
     //id initialization
     this._id = id();
@@ -85,6 +100,41 @@ Pawn.prototype.kill = function(){
 
 
 
+Pawn.prototype.setAltitudeLayer = function(number){
+    if(typeof number === 'number'){
+        this.altitudeLayer = number;
+        return;
+    }
+    //iterate game grids lookig for a point where the unit has pathable condition
+    for(let i = 0; i<this.game.grid.collisionGrid.length; i++){
+        const grid = this.game.grid.collisionGrid[i];
+        if(grid[this.gridY][this.gridX] === 0){
+            this.altitudeLayer = i;
+            return;
+        }
+    }
+    //default value
+    this.altitudeLayer = 0;
+    return;
+
+}
+
+//TODO: Check that collision groups are being assigned properly, right now
+//      units go through walls when they shouldn't be able to
+Pawn.prototype.updateCollisionGroup = function(){
+    this.body.setCollisionGroup(this.game._collisionGroups.level[this.altitudeLayer]);
+}
+
+Pawn.prototype.updateCollisionParams = function(){
+    let worldCollision = undefined;
+    if(this.altitudeLayer != 0){
+        worldCollision = this.game._collisionGroups.grass;
+    }else{
+        worldCollision = this.game._collisionGroups.walls;
+    }
+    this.body.collides([this.game._collisionGroups.level[this.altitudeLayer],worldCollision]);
+}
+
 
 /**
  * @description - With a static square grid of 64 pixels this takes x,y position of the unit and transforms them to gird points
@@ -120,6 +170,7 @@ Pawn.prototype.move = function (xDir, yDir) {
 Pawn.prototype.stop = function () {
     this.body.velocity.x = 0;
     this.body.velocity.y = 0;
+    
 }
 
 
@@ -127,7 +178,6 @@ Pawn.prototype.stop = function () {
 
 Pawn.prototype.update = function () {
     this.setGridPosition();
-
 };
 
 

@@ -49,16 +49,29 @@ AI.prototype.stopManaging = function (player) {
     }
 }
 
-
+/**
+ * 
+ * 
+ * @param {gameFramework.Unit} unit 
+ * @returns 
+ */
 AI.prototype.parseUnitData = function (unit) {
-    return {
+    var obj = {
         team: unit.owner.team._id,
         id: unit._id,
         health: unit.health,
         x: unit.x,
-        y: unit.y
+        y: unit.y,
+        altitudeLayer: unit.altitudeLayer
     };
+    
+    if(unit.__type__ == 'siegeTower'){
+        obj.type = 'siegeTower';
+        obj.settled = unit.status.settled;
+    }
+    return obj;
 }
+
 
 AI.prototype.getGameContext = function () {
     let unitsArray = this.game._units;
@@ -79,6 +92,11 @@ AI.prototype.getGameContext = function () {
     }
 }
 
+/**
+ * 
+ * @param {Boolean} updateGrid 
+ * @returns {void}
+ */
 AI.prototype.broadcastGameContext = function (updateGrid) {
     const context = this.getGameContext();
     if(updateGrid){
@@ -88,6 +106,11 @@ AI.prototype.broadcastGameContext = function (updateGrid) {
     this.game.__AIManager__.broadcast('setContext', context);
 }
 
+/** 
+ * 
+ * @returns {void}
+ * 
+*/
 AI.prototype.broadcastContextInitialization = function () {
     const context = this.getGameContext();
     context.teams = [];
@@ -114,10 +137,25 @@ AI.prototype.broadcastContextInitialization = function () {
     this.game.__AIManager__.broadcast('initializeContext', context);
 }
 
+
+/**
+ * 
+ * 
+ * @param {String} event 
+ * @param {object} context 
+ * @returns {void}
+ */
 AI.prototype.choose = function (event, context) {
     this.game.__AIManager__.distributeWork(event, context);
 }
 
+
+/**
+ * 
+ * 
+ * @param {Object} data 
+ * @returns {void}
+ */
 AI.prototype.broadcastOrder = function (data) {
     const actor = findById(data.actor, this.game);
     if (actor) {

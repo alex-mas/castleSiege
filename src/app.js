@@ -26,6 +26,8 @@ const gameFramework = require('./gameFramework/gameFramework.js');
 import env from "env";
 
 
+const Soldier = gameFramework.Soldier;
+
 const config = {
     width: window.innerWidth,
     height: window.innerHeight,
@@ -52,10 +54,17 @@ const __srcdir = __dirname + '../src';
 game._units = [];
 game._unitIds = {};
 
+let SHOULD_GRID_UPDATE = undefined;
 game.grid = {
     tileGrid: [],
-    collisionGrid: []
+    collisionGrid: [
+        [],
+        [],
+        []
+        //TODO: add more levels dynamically
+    ]
 };
+
 
 game.__pathfinder__ = new gameFramework.ThreadManager(__dirname, '/gameFramework/workers/pathfinding.js', {
     amountOfWorkers: 2,
@@ -71,6 +80,7 @@ game.grid.onChange = function () {
     game.__pathfinder__.distributeWork('setGrid', {
         grid: game.grid.collisionGrid
     });
+    SHOULD_GRID_UPDATE = true;
 }
 
 game.__AIManager__ = new gameFramework.ThreadManager(
@@ -122,24 +132,34 @@ function preload() {
 
 }
 
-
+//TODO: account for multilayer collision grid when creating the world
 //paints the ground sprites and stores them into memory and creates the collision grid
 function paintWorldGround() {
     for (var i = 0; i < window.innerHeight / 64; i++) {
-        game.grid.collisionGrid[i] = [];
+        game.grid.collisionGrid[0][i] = [];
+        game.grid.collisionGrid[1][i] = [];
         game.grid.tileGrid[i] = [];
         for (var j = 0; j < window.innerWidth / 64; j++) {
-            var spriteNumber = 1 + Math.round(Math.random() * 5);
-            game.grid.tileGrid[i][j] = game.add.sprite(64 * j, 64 * i, 'frames', `tile_0${spriteNumber}.png`);
+            var spriteNumber = 1 + Math.round(Math.random() * 6);
+            game.grid.tileGrid[i][j] = new Phaser.Sprite(game,64 * j, 64 * i, 'frames', `tile_0${spriteNumber}.png`);
+            game.add.existing(game.grid.tileGrid[i][j]);
+            game.grid.tileGrid[i][j].anchor.set(0)
+            game.physics.p2.enable(game.grid.tileGrid[i][j]);
+            game.grid.tileGrid[i][j].body.enable = true;
+            game.grid.tileGrid[i][j].body.kinematic = true;
             if (spriteNumber >= 7) {
-                game.physics.p2.enable(game.grid.tileGrid[i][j]);
-                game.grid.tileGrid[i][j].body.dynamic = false;
-                game.grid.tileGrid[i][j].anchor.x = 0;
-                game.grid.tileGrid[i][j].anchor.y = 0;
-                game.grid.collisionGrid[i][j] = 1;
+                game.grid.collisionGrid[0][i][j] = 1;
+                game.grid.collisionGrid[1][i][j] = 0;
+                game.grid.tileGrid[i][j].body.setCollisionGroup(game._collisionGroups.walls);
+                game.grid.tileGrid[i][j].body.collides([game._collisionGroups.level[0], game._collisionGroups.grass]);
             } else {
-                game.grid.collisionGrid[i][j] = 0;
+                game.grid.tileGrid[i][j].body.setCollisionGroup(game._collisionGroups.grass);
+                game.grid.tileGrid[i][j].body.collides([game._collisionGroups.level[1],game._collisionGroups.walls]);
+                game.grid.collisionGrid[0][i][j] = 0;
+                game.grid.collisionGrid[1][i][j] = 1;
+                
             }
+            
         }
     }
 }
@@ -153,13 +173,25 @@ function create() {
     /*       Physics custom configuration        */
     //TODO: Optimize individual object configurations to avoid undesired computations
     //950 units yielded average of 13 fps on combat and with this config yield 19-20 fps
-    game.physics.p2.emitImpactEvent = false;
+    //game.physics.p2.emitImpactEvent = false;
     game.physics.p2.applyGravity = false;
     game.physics.p2.applyDamping = false;
     game.physics.p2.applySpringForces = false;
     game.physics.p2.friction = 0;
     game.physics.p2.frameRate = 1 / 60;
+    game.physics.p2.setImpactEvents(true);
 
+    game._collisionGroups = {
+        grass: game.physics.p2.createCollisionGroup(),
+        walls: game.physics.p2.createCollisionGroup(),
+        level:[
+            game.physics.p2.createCollisionGroup(),
+            game.physics.p2.createCollisionGroup(),
+        ]
+    };
+
+
+    game.physics.p2.updateBoundsCollisionGroup();
 
     paintWorldGround();
     //basic initialization
@@ -169,8 +201,21 @@ function create() {
         grid: game.grid.collisionGrid
     });
 
+    const test = new gameFramework.SiegeTower(
+        game,
+        500,
+        500,
+        'tile_45.png',
+        redPlayer,
+        {
+            health: 1500,
+            ms: 30
+        }
+    )
+    game._units.push(test);
+    game._unitIds[test._id] = test;
     //instantiate all the units in recrangular formation
-    for (let j = 0; j < 25; j++) {
+    for (let j = 0; j < 5; j++) {
         for (let i = 0; i < 30; i++) {
             let unit = new gameFramework.Soldier(
                 game,
@@ -180,7 +225,7 @@ function create() {
                 redPlayer,
                 {
                     health: 100,
-                    ms: 60,
+                    ms: 90,
                     attack: [{
                         isOnCd: false,
                         cd: 456,
@@ -196,11 +241,11 @@ function create() {
                 'axeBlue.png',
                 bluePlayer,
                 {
-                    health: 100,
+                    health: 1,
                     ms: 60,
                     attack: [{
                         isOnCd: false,
-                        cd: 456,
+                        cd: 1456,
                         damage: 90,
                         range: 63
                     }]
@@ -211,8 +256,6 @@ function create() {
             game._unitIds[unit2._id] = unit2;
         }
     }
-    console.log(game._unitIds);
-    console.log(game._units);
 
 
 }
@@ -220,7 +263,7 @@ function create() {
 
 function update() {
     console.log(game.time.fps);
-    regularAi.update();
+    regularAi.update(undefined, SHOULD_GRID_UPDATE);
 
     //custom game update logic, most logic is called on the update methods of instantiated game objects tho
 }

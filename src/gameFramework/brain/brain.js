@@ -1,4 +1,5 @@
 const {findById} = require('../utils/utils');
+
 /**
  * @name Brain
  * @class Brain
@@ -18,22 +19,23 @@ const Brain = function(game,host,owner){
 
 Brain.prototype.onAIOrder = function(order){
     this._computing = false;
-    let correctOrder = false;
+    let isOrderCorrect = false;
+
     if(order.target){
         const target = findById(order.target,this.game);
         if(target){
-            correctOrder = true;
+            isOrderCorrect = true;
             order.targetId = order.target;
             order.target = target; 
         }else{
-            //console.warn('Unable to find target');
+            console.warn('Unable to find target');
         }
     }else if(order.error){
-        
+        console.warn('AI_ERROR: ',order.error);
     }else{
-        correctOrder = true;
+        isOrderCorrect = true;
     }
-    if(correctOrder){
+    if(isOrderCorrect){
         this.host.orders.push(order);
         if(order.replace){
             this.host.clearOrder();

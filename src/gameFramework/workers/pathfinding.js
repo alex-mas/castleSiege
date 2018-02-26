@@ -3,8 +3,7 @@ const utils = require('../utils/utils.js');
 
 let gridData = {};
 
-
-let defaultFinder = new pathfinder.AStarFinder({
+let defaultFinder = new pathfinder.BiAStarFinder({
     allowDiagonal: true,
     dontCrossCorners: true
 });
@@ -15,22 +14,22 @@ onmessage = function (e) {
     switch (event) {
         case 'findPath':
             const level = data.level || 0;
-            
             const id = data.id;
             const targetX = utils.pointToGrid(data.to[0]),
                 targetY = utils.pointToGrid(data.to[1]);
-            if(gridData[level][targetY][targetX] != 0){
-                postMessage({path:[],id});
+            if (gridData[level][targetY][targetX] != 0 && !data.goCloseTo) {
+                postMessage({ path: [], id });
                 return;
             }
             const localGrid = new pathfinder.Grid(gridData[level]);
-            if(targetX != undefined && targetY != undefined){
+            if (data.goCloseTo) localGrid.nodes[targetY][targetX].walkable = true;
+            if (targetX != undefined && targetY != undefined) {
                 postMessage({
                     path: defaultFinder.findPath(data.from[0], data.from[1], targetX, targetY, localGrid),
                     id
                 });
                 return;
-            }else{
+            } else {
                 postMessage({
                     path: [],
                     id

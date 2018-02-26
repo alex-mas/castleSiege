@@ -147,7 +147,9 @@ ThreadManager.prototype.distributeWork = function (event, context, callback) {
 
     //once we have chosen the worker that will take the job: 
     //  we assign its callback and then give it the work
-    assignedWorker.onmessage = workHandler;
+    if(workHandler !== assignedWorker.onMessage){
+        assignedWorker.onmessage = workHandler;
+    }
     if (this.config.sendingMethod === "transferList") {
         let data = { event, context };
         assignedWorker.postMessage(data, [data]);

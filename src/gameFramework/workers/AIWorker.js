@@ -1,5 +1,6 @@
-let gameContext = {};
+const utils = require('../utils/utils.js');
 
+let gameContext = {};
 
 const sendEmptyOrder = function (event, actor, error) {
     postMessage({
@@ -58,14 +59,15 @@ const sendStaticMovementOrder = function (event, x, y, actor, replaceOrder = fal
     });
 }
 
-const sendUseElevatorOrder = function (event, actor, replaceOrder = false) {
+const sendUseElevatorOrder = function (event, actor, elevator, replaceOrder = false) {
     postMessage({
         event: event,
         order: {
             type: 'useElevator',
             replace: replaceOrder
         },
-        actor: actor.id
+        actor: actor.id,
+        target: elevator
     });
 }
 
@@ -107,12 +109,30 @@ const getEnemies = function (teamId) {
     return enemies;
 }
 
-/**
- * 
- * 
- * @param {gameFramework.Pawn} actor 
- * @returns {gameFramewor.SiegeTower} - closest ally siege tower to the actor
- */
+
+
+const getClosestWallSection = function (actor) {
+    const heightLevel = actor.altitudeLayer;
+    let optimalWallTarget = undefined;
+    let distanceToWall = undefined;
+    for (let y = 0; y < gameContext.grid[heightLevel].length; y++) {
+        for (let x = 0; x < gameContext.grid[heightLevel][y].length; x++) {
+            if (gameContext.grid[heightLevel][y][x] == heightLevel) continue;
+            if (optimalWallTarget) {
+                let distance = Math.sqrt((utils.gridToPoint(x) - actor.x) ** 2 + (utils.gridToPoint(y) - actor.y) ** 2);
+                if (distance < distanceToWall) {
+                    optimalWallTarget = [x, y];
+                    distanceToWall = distance;
+                }
+            } else {
+                optimalWallTarget = [x, y];
+                distanceToWall = Math.sqrt((utils.gridToPoint(x) - actor.x) ** 2 + (utils.gridToPoint(y) - actor.y) ** 2);
+            }
+        }
+    }
+    return optimalWallTarget;
+}
+
 const searchElevator = function (actor) {
     let closestElevator = undefined;
     let distanceToElevator = undefined;
@@ -140,22 +160,21 @@ const searchElevator = function (actor) {
 const chooseTargetFrom = function (enemies, actor) {
     let optimalTarget = undefined;
     let minimumDistance = 90000;
-    //loop all enemies and save the closest target on memory
+    //loop all enemies and save the closest one
     for (var i = 0; i < enemies.length; i++) {
+
         let enemy = enemies[i];
-        if (enemy.health < 0) {
-            continue;
-        }
-        if (enemy.altitudeLayer != actor.altitudeLayer) {
-            continue;
-        }
+
+        if (enemy.health < 0) continue;
+        if (enemy.altitudeLayer !== actor.altitudeLayer) continue;
+        if (enemy.type === 'siegeTower') continue;
+
         let distance = Math.sqrt((enemy.x - actor.x) ** 2 + (enemy.y - actor.y) ** 2);
         if (distance < minimumDistance) {
             minimumDistance = distance;
             optimalTarget = enemy;
         }
     }
-    //return closest target
     return optimalTarget;
 }
 
@@ -169,7 +188,6 @@ const isInAttackRange = function (actor, attack, enemy) {
         return false
     }
 }
-
 
 onmessage = function (e) {
 
@@ -212,13 +230,11 @@ onmessage = function (e) {
                     let enemy = chooseTargetFrom(enemies, actor);
                     if (!enemy) {
                         const elevator = searchElevator(actor);
-                        console.log('here',elevator);
                         if (elevator) {
-
                             let distance = Math.sqrt((elevator.x - actor.x) ** 2 + (elevator.y - actor.y) ** 2);
                             //if in range, send order to climb either send static move
                             if (distance < 16) {
-                                sendUseElevatorOrder(event, actor, true);
+                                sendUseElevatorOrder(event, actor, elevator, true);
                                 return;
                             } else {
                                 sendStaticMovementOrder(event, elevator.x, elevator.y, actor);
@@ -273,7 +289,6 @@ onmessage = function (e) {
                         let enemy = chooseTargetFrom(enemies, actor);
                         if (!enemy) {
                             const elevator = searchElevator(actor);
-                            console.log('here',elevator);
                             if (elevator) {
                                 let distance = Math.sqrt((elevator.x - actor.x) ** 2 + (elevator.y - actor.y) ** 2);
                                 //if in range, send order to climb either send static move
@@ -286,6 +301,9 @@ onmessage = function (e) {
                                 }
 
                             }
+                            //TODO: Send a wait order for a reasonable amount of time so they don't clutter the threads with useless requests
+                            sendEmptyOrder(event, actor, 'ERROR: No valid actors or orders to give to the unit');
+                            return;
                         } else {
                             if (enemy.id !== orders[0].target.id) {
                                 let maximumDamage = 0;
@@ -307,6 +325,8 @@ onmessage = function (e) {
                                     return;
                                 }
                             }
+                            sendEmptyOrder(event, actor, 'NOT_ACTUALLY_ERROR: the target didn\'t have to change');
+                            return;
                         }
 
                     } else {
@@ -314,13 +334,23 @@ onmessage = function (e) {
                         return;
                     }
                 }
-                sendEmptyOrder(event, actor, 'ERROR: more than one order and first order isnt of type dynamic movement');
+                sendEmptyOrder(event, actor, `ERROR: more than one order and first order isnt of type dynamic movement, its of type ${orders[0].type}`);
                 return;
             }
             break;
         case 'siegeTowerAI':
-            sendEmptyOrder(event, context, 'ERROR: siege towers are too scrub to have an ai');
-            return;
+            {
+                const actor = context;
+                const points = getClosestWallSection(actor);
+                if (points) {
+                    sendStaticMovementOrder(event, utils.gridToPoint(points[0]), utils.gridToPoint(points[1]), actor);
+                    return;
+                } else {
+                    sendEmptyOrder(event, actor, 'ERROR: failed to find wall section');
+                    return;
+                }
+            }
+            break;
         default:
             break;
     }

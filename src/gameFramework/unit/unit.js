@@ -49,7 +49,8 @@ Unit.prototype.computeMove = function (x, y) {
         from: [this.gridX, this.gridY],
         to: [x, y],
         id: this._id,
-        level: this.altitudeLayer
+        level: this.altitudeLayer,
+        goCloseTo: this.__type__ == 'siegeTower'
     });
 }
 
@@ -146,12 +147,9 @@ Unit.prototype.isOrderValid = function (order) {
 
 
 Unit.prototype.executeOrders = function () {
+    //order updating
     if (!this.currentOrder) {
         if (this.orders[0] !== undefined) {
-            //check if the order queue has elements
-            //give the pawn its next order
-            //WARNING: we keep the original order of the array intact, that is, we might just stay in a bucle giving ourselves the same order over and over
-            //TODO: decide if we splice it on each order bases or we do it centralized here and if we do it here try to make the change without breaking the code
             this.currentOrder = this.orders[0];
         } else {
             return;
@@ -200,8 +198,18 @@ Unit.prototype.executeOrders = function () {
 
             }
             break;
+        case 'useElevator':
+            const elevator = this.currentOrder.target;
+            let distance = Math.sqrt((elevator.x - this.x) ** 2 + (elevator.y - this.y) ** 2);
+            if(distance > 64){
+                this.clearOrder();
+            }else{
+                elevator.lift(this);
+                this.clearOrder();
+            }
+            break;
         default:
-            
+
             break;
     }
 }

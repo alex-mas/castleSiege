@@ -78,9 +78,9 @@ AI.prototype.getGameContext = function () {
     let units = [];
     for (var i = 0; i < unitsArray.length; i++) {
         let gameObject = unitsArray[i];
-        //if (gameObject.alive) {
+        /*toggle*/if (gameObject.alive) {
             units.push(this.parseUnitData(gameObject));
-        //}
+        }/*toggle*/
     }
 
     return {

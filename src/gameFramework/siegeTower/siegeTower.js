@@ -39,13 +39,13 @@ SiegeTower.prototype.constructor = SiegeTower;
 
 //Sets up the unit staticly in its current position
 SiegeTower.prototype.settle = function(){
-    this.stop();
     this.status.settled = true;
     this.body.kinematic = true;
     this.body.immovable = true;
     this.body.moves = false;
-    this.body.debug = true;
     this.brain.isHostSettled = true;
+    this.attributes.ms = 0;
+    this.stop();
 }
 
 
@@ -53,12 +53,14 @@ SiegeTower.prototype.settle = function(){
  * @description changes the altitude of the given unit
  * @param {gameFramework.Unit} unit 
  */
-SiegeTower.prototype.carry = function(unit){
+SiegeTower.prototype.lift = function(unit){
     if(unit.altitudeLayer){
         unit.altitudeLayer = 0;
     }else{
         unit.altitudeLayer = 1;
     }
+    unit.updateCollisionGroup();
+    unit.updateCollisionParams();
 }
 
 
@@ -74,6 +76,17 @@ SiegeTower.prototype.executeOrders = function () {
                 this.settle();
                 this.clearOrder();
                 break;
+            case 'staticMovement':
+            /*
+                if(                    
+                    this.currentOrder.points &&
+                    this.currentOrder.points.length == 1
+                ){
+                }
+                console.log(this.currentOrder);
+                if(!this.currentOrder.points){
+                    console.log(this);
+                }*/
             default: 
                 break;
         }

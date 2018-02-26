@@ -13,11 +13,7 @@ import "./stylesheets/main.css";
 const logger = require('./dev_modules/logger.js');
 //Game engine
 
-/*
-window.PIXI = require('phaser-ce/build/custom/pixi');
-window.p2 = require('phaser-ce/build/custom/p2');
-window.Phaser = require('phaser-ce/build/custom/phaser-split');
-*/
+
 
 //Custom game engine modules
 //TODO: Use ES6 destructuring to export relevant classes - Pay for what you use n stuff
@@ -132,31 +128,31 @@ function preload() {
 
 }
 
-//TODO: account for multilayer collision grid when creating the world
 //paints the ground sprites and stores them into memory and creates the collision grid
 function paintWorldGround() {
-    for (var i = 0; i < window.innerHeight / 64; i++) {
-        game.grid.collisionGrid[0][i] = [];
-        game.grid.collisionGrid[1][i] = [];
-        game.grid.tileGrid[i] = [];
-        for (var j = 0; j < window.innerWidth / 64; j++) {
+    for (var y = 0; y < window.innerHeight / 64; y++) {
+        game.grid.collisionGrid[0][y] = [];
+        game.grid.collisionGrid[1][y] = [];
+        game.grid.tileGrid[y] = [];
+        for (var x = 0; x < window.innerWidth / 64; x++) {
             var spriteNumber = 1 + Math.round(Math.random() * 6);
-            game.grid.tileGrid[i][j] = new Phaser.Sprite(game,64 * j, 64 * i, 'frames', `tile_0${spriteNumber}.png`);
-            game.add.existing(game.grid.tileGrid[i][j]);
-            game.grid.tileGrid[i][j].anchor.set(0)
-            game.physics.p2.enable(game.grid.tileGrid[i][j]);
-            game.grid.tileGrid[i][j].body.enable = true;
-            game.grid.tileGrid[i][j].body.kinematic = true;
+            game.grid.tileGrid[y][x] = new Phaser.Sprite(game,32+(64 * x), 32+(64 * y), 'frames', `tile_0${spriteNumber}.png`);
+            var currentTile = game.grid.tileGrid[y][x];
+            game.add.existing(currentTile);
+            currentTile.anchor.set(0)
+            game.physics.p2.enable(currentTile);
+            currentTile.body.kinematic = true;
             if (spriteNumber >= 7) {
-                game.grid.collisionGrid[0][i][j] = 1;
-                game.grid.collisionGrid[1][i][j] = 0;
-                game.grid.tileGrid[i][j].body.setCollisionGroup(game._collisionGroups.walls);
-                game.grid.tileGrid[i][j].body.collides([game._collisionGroups.level[0], game._collisionGroups.grass]);
+                currentTile.body.debug = true;
+                game.grid.collisionGrid[0][y][x] = 1;
+                game.grid.collisionGrid[1][y][x] = 0;
+                currentTile.body.setCollisionGroup(game._collisionGroups.walls);
+                currentTile.body.collides([game._collisionGroups.level[0], game._collisionGroups.grass]);
             } else {
-                game.grid.tileGrid[i][j].body.setCollisionGroup(game._collisionGroups.grass);
-                game.grid.tileGrid[i][j].body.collides([game._collisionGroups.level[1],game._collisionGroups.walls]);
-                game.grid.collisionGrid[0][i][j] = 0;
-                game.grid.collisionGrid[1][i][j] = 1;
+                currentTile.body.setCollisionGroup(game._collisionGroups.grass);
+                currentTile.body.collides([game._collisionGroups.level[1],game._collisionGroups.walls]);
+                game.grid.collisionGrid[0][y][x] = 0;
+                game.grid.collisionGrid[1][y][x] = 1;
                 
             }
             
@@ -208,14 +204,14 @@ function create() {
         'tile_45.png',
         redPlayer,
         {
-            health: 1500,
+            health: 2500,
             ms: 30
         }
     )
     game._units.push(test);
     game._unitIds[test._id] = test;
     //instantiate all the units in recrangular formation
-    for (let j = 0; j < 5; j++) {
+    for (let j = 0; j < 16; j++) {
         for (let i = 0; i < 30; i++) {
             let unit = new gameFramework.Soldier(
                 game,
@@ -225,11 +221,11 @@ function create() {
                 redPlayer,
                 {
                     health: 100,
-                    ms: 90,
+                    ms: 60,
                     attack: [{
                         isOnCd: false,
                         cd: 456,
-                        damage: 90,
+                        damage: 60,
                         range: 63
                     }]
                 }
@@ -241,12 +237,12 @@ function create() {
                 'axeBlue.png',
                 bluePlayer,
                 {
-                    health: 1,
+                    health: 100,
                     ms: 60,
                     attack: [{
                         isOnCd: false,
-                        cd: 1456,
-                        damage: 90,
+                        cd: 456,
+                        damage: 60,
                         range: 63
                     }]
                 }

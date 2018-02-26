@@ -31,7 +31,7 @@ SoldierBrain.prototype.constructor = SoldierBrain;
 
 
 
-SoldierBrain.prototype.getHostContext = function(){
+SoldierBrain.prototype.getHostContext = function () {
     return {
         team: this.host.owner.team._id,
         health: this.host.health,
@@ -46,19 +46,19 @@ SoldierBrain.prototype.getHostContext = function(){
 
 
 
-SoldierBrain.prototype.sanitizeOrders = function(){
+SoldierBrain.prototype.sanitizeOrders = function () {
     let orders = [];
-    for(let i = 0; i <this.host.orders.length; i++){
+    for (let i = 0; i < this.host.orders.length; i++) {
         const order = this.host.orders[i];
-        if(order.target){
+        if (order.target) {
             orders.push({
                 type: order.type,
-                target:{
+                target: {
                     id: order.targetId
                 },
                 points: order.points
             });
-        }else{
+        } else {
             orders.push(order);
         }
     }
@@ -77,22 +77,25 @@ SoldierBrain.prototype.update = function (context) {
     this.__counter++;
 
     /* Second iteration, event based system to communicate with AI*/
-    if(this._computing){
+    if (this._computing) {
         return;
     }
     if (this.host.orders.length < 1) {
-       // console.log('requesting ai computation');
+        // console.log('requesting ai computation');
         this.owner.AI.choose('soldierAI', this.getHostContext());
         this._computing = true;
     } else {
         if (this.host.currentOrder &&
-            this.host.currentOrder.type === "dynamicMovement"&&
-            this.__counter % 321 === 0
+            this.host.currentOrder.type === "dynamicMovement" &&
+            (
+                this.__counter % 321 === 0 &&
+                !this.host.currentOrder.target.alive
+            )
         ) {
-           /* if(this.__counter > 2300){
-                console.log(this.host.orders);
-                console.log(this.host.orders[0].target.alive);
-            }*/
+            /* if(this.__counter > 2300){
+                 console.log(this.host.orders);
+                 console.log(this.host.orders[0].target.alive);
+             }*/
             //console.log('requesting ai computation');
             this._computing = true;
             this.owner.AI.choose('soldierAI', this.getHostContext());

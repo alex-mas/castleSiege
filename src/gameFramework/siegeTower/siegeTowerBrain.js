@@ -76,10 +76,6 @@ SiegeTowerBrain.prototype.update = function (context) {
 
     Brain.prototype.update.call(this, context);
     this.__counter++;
-    if(this.__counter > 500){
-        this.host.settle();
-    }
-    
     /* Second iteration, event based system to communicate with AI*/
     if(this._computing || this.isHostSettled){
         return;

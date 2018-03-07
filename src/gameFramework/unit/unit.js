@@ -60,6 +60,11 @@ Unit.prototype.computeMove = function (x, y) {
  * Function responsible for executing a move order
  */
 Unit.prototype.executeMove = function () {
+    if(this.currentOrder.points.length == 1)
+    {
+        console.log(this.currentOrder);
+        console.log(this.altitudeLayer);
+    }
     if (this.currentOrder.points.length > 0) {
         //determine what is the next step in grid points
         let nextMoveStep = this.currentOrder.points[0];
@@ -116,9 +121,12 @@ Unit.prototype.clearOrders = function () {
 
 //TODO: revise and get your shit together about where to do each task in terms of resetting orders
 Unit.prototype.clearOrder = function () {
+    //TODO: UNITS GET TO DFIRT AWAY BECASE THEY ARE STOPPED CHECK THIS DAMN THING
     this.stop();
     this.currentOrder = undefined;
-    this.orders.splice(0, 1);
+    if(this.orders.length > 0){
+        this.orders.splice(0, 1);
+    }  
 }
 
 //TODO: implement - Adds the given order to the list of orders if its valid
@@ -201,9 +209,12 @@ Unit.prototype.executeOrders = function () {
         case 'useElevator':
             const elevator = this.currentOrder.target;
             let distance = Math.sqrt((elevator.x - this.x) ** 2 + (elevator.y - this.y) ** 2);
+            console.log('order is useElevator');
+            console.log('distance of ', distance);
             if(distance > 64){
                 this.clearOrder();
             }else{
+                console.log('using elevator');
                 elevator.lift(this);
                 this.clearOrder();
             }

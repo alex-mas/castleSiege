@@ -1,10 +1,6 @@
 #FIRST ITERATION REMAINING TASKS:
 
 
-
-## Create a multiple height level via pathfinding
-- There will be points that move units between height levels
-
 ## Account for the multiple height pathfinding system in the AI systems
 - Make units able to go between levels if possible
 

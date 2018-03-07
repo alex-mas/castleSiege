@@ -72,6 +72,18 @@ const sendUseElevatorOrder = function (event, actor, elevator, replaceOrder = fa
 }
 
 
+const sendSettleOrder = function (event, actor, replaceOrder = false) {
+    postMessage({
+        event,
+        order: {
+            type: 'settle',
+            repalce: replaceOrder
+        },
+        actor: actor.id
+    });
+}
+
+
 const distributeUnits = function () {
     //reset unit arrays
     for (let j = 0; j < gameContext.teams.length; j++) {
@@ -343,8 +355,20 @@ onmessage = function (e) {
                 const actor = context;
                 const points = getClosestWallSection(actor);
                 if (points) {
-                    sendStaticMovementOrder(event, utils.gridToPoint(points[0]), utils.gridToPoint(points[1]), actor);
-                    return;
+                    //TODO: The problem lies in the fact that the unit center is probably wrongly aligned 
+                    const distance = utils.getDistance(points.map((point)=>utils.gridToPoint(point,true)), [actor.x, actor.y]);
+                    console.log(points);
+                    console.log([actor.x, actor.y]);
+                    console.log('Distance inside worker is reported to be: ', distance);
+                    if (distance <= 87.137) {
+                        sendSettleOrder(event, actor);
+                        return;
+                    } else {
+                        console.log(points);
+                        console.log([actor.x, actor.y]);
+                        sendStaticMovementOrder(event, utils.gridToPoint(points[0],true), utils.gridToPoint(points[1],true), actor);
+                        return;
+                    }
                 } else {
                     sendEmptyOrder(event, actor, 'ERROR: failed to find wall section');
                     return;

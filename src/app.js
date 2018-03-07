@@ -136,10 +136,11 @@ function paintWorldGround() {
         game.grid.tileGrid[y] = [];
         for (var x = 0; x < window.innerWidth / 64; x++) {
             var spriteNumber = 1 + Math.round(Math.random() * 6);
-            game.grid.tileGrid[y][x] = new Phaser.Sprite(game,32+(64 * x), 32+(64 * y), 'frames', `tile_0${spriteNumber}.png`);
+            game.grid.tileGrid[y][x] = new Phaser.Sprite(game, 32+(64 * x), 32+(64 * y), 'frames', `tile_0${spriteNumber}.png`);
             var currentTile = game.grid.tileGrid[y][x];
+            currentTile.anchor.y = 0.5;
+            currentTile.anchor.y = 0.5;
             game.add.existing(currentTile);
-            currentTile.anchor.set(0)
             game.physics.p2.enable(currentTile);
             currentTile.body.kinematic = true;
             if (spriteNumber >= 7) {
@@ -211,8 +212,8 @@ function create() {
     game._units.push(test);
     game._unitIds[test._id] = test;
     //instantiate all the units in recrangular formation
-    for (let j = 0; j < 16; j++) {
-        for (let i = 0; i < 30; i++) {
+    for (let j = 0; j < 6; j++) {
+        for (let i = 0; i < 3; i++) {
             let unit = new gameFramework.Soldier(
                 game,
                 32 + 32 * j,
@@ -220,7 +221,7 @@ function create() {
                 'axeRed.png',
                 redPlayer,
                 {
-                    health: 100,
+                    health: 190,
                     ms: 60,
                     attack: [{
                         isOnCd: false,
@@ -258,7 +259,7 @@ function create() {
 
 
 function update() {
-    console.log(game.time.fps);
+    //console.log(game.time.fps);
     regularAi.update(undefined, SHOULD_GRID_UPDATE);
 
     //custom game update logic, most logic is called on the update methods of instantiated game objects tho

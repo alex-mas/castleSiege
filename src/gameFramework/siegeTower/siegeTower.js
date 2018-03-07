@@ -2,6 +2,7 @@
 window.PIXI = require('phaser-ce/build/custom/pixi');
 window.p2 = require('phaser-ce/build/custom/p2');
 window.Phaser = require('phaser-ce/build/custom/phaser-split');
+const utils = require('../utils/utils');
 const Unit = require('../unit/unit');
 const SiegeTowerBrain = require('./siegeTowerBrain');
 
@@ -39,12 +40,16 @@ SiegeTower.prototype.constructor = SiegeTower;
 
 //Sets up the unit staticly in its current position
 SiegeTower.prototype.settle = function(){
+    console.log('settled');
+    this.body.static = true;
     this.status.settled = true;
-    this.body.kinematic = true;
     this.body.immovable = true;
     this.body.moves = false;
+    this.body.debug = true;
     this.brain.isHostSettled = true;
     this.attributes.ms = 0;
+    this.body.clearCollision();
+    this.body.collides(this.game._collisionGroups.walls);
     this.stop();
 }
 
@@ -54,6 +59,7 @@ SiegeTower.prototype.settle = function(){
  * @param {gameFramework.Unit} unit 
  */
 SiegeTower.prototype.lift = function(unit){
+    console.log('lifting unit');
     if(unit.altitudeLayer){
         unit.altitudeLayer = 0;
     }else{
@@ -73,20 +79,24 @@ SiegeTower.prototype.executeOrders = function () {
         //Check each possible case and perform its appropiate action either do nothing.
         switch (this.currentOrder.type) {
             case 'settle':
+                console.log('should settle');
                 this.settle();
                 this.clearOrder();
                 break;
             case 'staticMovement':
-            /*
                 if(                    
                     this.currentOrder.points &&
-                    this.currentOrder.points.length == 1
+                    this.currentOrder.points.length === 1
                 ){
+                    console.log(this.currentOrder.points.length);
+                    const x = utils.gridToPoint(this.currentOrder.points[0][0],true);
+                    const y = utils.gridToPoint(this.currentOrder.points[0][1],true);
+                    const distance = utils.getDistance([this.x, this.y], [x,y]);
+                    console.log(distance);
+                    if(distance <= 87.137){
+                        this.clearOrder();
+                    }
                 }
-                console.log(this.currentOrder);
-                if(!this.currentOrder.points){
-                    console.log(this);
-                }*/
             default: 
                 break;
         }
@@ -100,6 +110,13 @@ SiegeTower.prototype.update = function () {
     if (this.alive) {
         Unit.prototype.update.call(this);
         this.brain.update(0);
+    }
+    if(this.status.settled)
+    {
+        this.stop();
+        this.body.setZeroDamping();
+        this.body.setZeroForce();
+        this.body.setZeroVelocity();
     }
 
 }

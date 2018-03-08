@@ -21,14 +21,11 @@
 const ThreadManager = function (callerPath, relFilePath, config = {}, eHandler) {
     //static property initalization
     if (!callerPath || !relFilePath) {
-        throw new Error(`File paths must be provided in order for the thread manager to work, expected two string arguments as paths and instead got ${callerPath} and ${relFilePath}`)
+        throw new Error(`File paths must be provided in order for the thread manager to work, expected two string arguments as paths and instead got ${callerPath} and ${relFilePath}`);
     }
     //configuration initialization
-    if(
-        typeof config !== 'object'||
-        Array.isArray(config)
-    ){
-        throw new Error('Invalid configuration')
+    if (typeof config !== 'object' || Array.isArray(config)) {
+        throw new Error('Invalid configuration provided for the thread manager');
     }
     this.config = config;
     //distribution
@@ -48,7 +45,6 @@ const ThreadManager = function (callerPath, relFilePath, config = {}, eHandler) 
     //worker config
     this.amountOfWorkers = config.amountOfWorkers || 4;
     this.workers = [];
-    this.workerStatus = [];
     this.lastAssignedWorker = -1;
 
     //define provided handler
@@ -59,120 +55,112 @@ const ThreadManager = function (callerPath, relFilePath, config = {}, eHandler) 
         this.isCallbackDefined = true;
     }
 
-    //worker startup
     if (this.config.initialization === "at_start") {
-        for (let i = 0; i < this.amountOfWorkers; i++) {
-            this.workers.push(new Worker(this.callerPath + this.filePath));
-            this.workers[i].onmessage = this.onMessage;
-            this.workerStatus[i] = 'idle';
-        }
+        this.initializeWorkers();
     }
 
-}
+};
 
-ThreadManager.prototype.initializeWorkers = function () {
-    let currentAmmount = this.workers.length;
-    for (let i = 0; i < this.amountOfWorkers - currentAmmount; i++) {
+ThreadManager.prototype.initializeWorkers = function (amount) {
+    let initializedWorkers = 0;
+    let currentAmount = this.workers.length;
+    for (let i = 0; i < this.amountOfWorkers - currentAmount; i++) {
+        if (amount && initializedWorkers >= amount) return;
         this.workers.push(new Worker(this.callerPath + this.filePath));
         this.workers[i].onmessage = this.onMessage;
         this.workerStatus[i] = 'idle';
+        initializedWorkers++;
     }
-}
-
-ThreadManager.prototype.initializeWorker = function () {
-    if (this.workers.length < this.amountOfWorkers) {
-        this.workers.push(new Worker(this.callerPath + this.filePath));
-        this.workers[this.workers.length-1].onmessage = this.onMessage;
-        this.workerStatus[this.workers.length-1] = 'idle';
-    } else {
-        console.warn('Adding more threads that exceed the configured ammount, change the configured ammount instead');
-    }
-}
+};
 
 ThreadManager.prototype.setEventHandler = function (handler) {
     if (!handler || typeof handler !== 'function')
         throw new Error(`Expected a function as argument and got a ${typeof handler}`);
     this.onMessage = handler;
     this.isCallbackDefined = true;
-}
+};
 
 ThreadManager.prototype.distributeWork = function (event, context, callback) {
-
     let workHandler = callback || this.onMessage;
     if (workHandler === undefined || typeof workHandler !== "function") {
         throw new Error('Cant distribute work without a function to handle its return value');
     }
-    //if workers are not initialized we initialize one of them
+
+    //if workers are not initialized we initialize one of them and assign it the work
     if (this.workers.length < this.amountOfWorkers && this.config.initialization === "delayed") {
-
-        //with delayed method while there are worker slots available 
-        //we directly stream work into the one we just initialized
-        this.workers.push(new Worker(this.callerPath + this.filePath));
-
-        this.workers[this.workers.length - 1].onmessage = workHandler;
-        this.workers[this.workers.length - 1].postMessage({ event, context });
-        this.workerStatus[this.workers.length - 1] = 'working';
         //return to prevent duplicating the requests on the worker
-        return;
+        return this.createAndGiveWork(workHandler, event, context);
     }
 
-    let assignedWorker;
-    /*
-    Round robin method, it keeps destributing the work sequentialy regardless of execution status on the workers
-    */
-    if (this.config.distributionMethod === "round_robin") {
+    let assignedWorker = this.chooseWorker();
 
-        //If its the first time or we finished a round we distribute it to the first
-        if (this.lastAssignedWorker === undefined || this.lastAssignedWorker < 0) {
-            assignedWorker = this.workers[0];
-            this.lastAssignedWorker = 0;
-            this.workerStatus[0] = 'working';
-        } else {
-            if (this.lastAssignedWorker < this.workers.length - 1) {
-                //increase the index and use it to determine the actual worker to assign
-                this.lastAssignedWorker++;
-                assignedWorker = this.workers[this.lastAssignedWorker];
-                this.workerStatus[this.lastAssignedWorker] = 'working';
-            } else {
-                //reset index and assing work to last element in the array
-                assignedWorker = this.workers[this.workers.length - 1];
-                this.workerStatus[this.workers.length - 1] = 'working';
-                this.lastAssignedWorker = -1;
-            }
-        }
-    } else if (this.config.distributionMethod === "not_implemented_yet") {
-        //TODO: IMPLEMENT MORE SMART WAYS, such as a smart_round_robin that takes into account if they are finished or not
-    }
-
-
-    //once we have chosen the worker that will take the job: 
-    //  we assign its callback and then give it the work
-    if(workHandler !== assignedWorker.onMessage){
+    if (workHandler !== assignedWorker.onMessage) {
         assignedWorker.onmessage = workHandler;
     }
-    if (this.config.sendingMethod === "transferList") {
-        let data = { event, context };
-        assignedWorker.postMessage(data, [data]);
-    } else if (this.config.sendingMethod === 'json'){
-        let data = { event, context };
-        assignedWorker.postMessage(JSON.stringify(data));
-    }else{
-        assignedWorker.postMessage({ event, context });
-    }
+
+    this.giveWork(assignedWorker, event, context);
 
 }
 
 //TODO: Stop using this method altogether and just send the event to an intermediary worker
 //That will implement its own thread manager and handle AI work distributing
 ThreadManager.prototype.broadcast = function (event, context, callback) {
+    let workHandler = callback || this.onMessage;
+    if (workHandler === undefined || typeof workHandler !== "function") {
+        throw new Error('Cant distribute work without a function to handle its return value');
+    }
     if (this.workers.length < this.amountOfWorkers) {
         this.initializeWorkers();
     }
-    for (let i = 0; i<this.workers.length; i++){
-        this.workers[i].postMessage({event, context});
-        this.workerStatus[i] = 'working';
+    for (let i = 0; i < this.workers.length; i++) {
+        if (workHandler !== this.worker[i].onMessage) {
+            this.worker[i].onmessage = workHandler;
+        }
+        this.giveWork(this.worker[i], event, context);
     }
 }
 
+ThreadManager.prototype.giveWork = function (worker, event, context) {
+    if (this.config.sendingMethod === "transferList") {
+        worker.postMessage(context, [context]);
+    } else if (this.config.sendingMethod === 'json') {
+        let data = { event, context };
+        worker.postMessage(JSON.stringify(data));
+    } else {
+        worker.postMessage({ event, context });
+    }
+}
+
+
+ThreadManager.prototype.chooseWorker = function () {
+    const assignedWorker;
+    if (this.workers.length == 1) {
+        assignedWorker = this.workers[0];
+    } else if (this.config.distributionMethod === "round_robin") {
+        //If its the first time or we finished a round we distribute it to the first
+        if (this.lastAssignedWorker === undefined || this.lastAssignedWorker < 0) {
+            assignedWorker = this.workers[0];
+            this.lastAssignedWorker = 0;
+        } else {
+            if (this.lastAssignedWorker < this.workers.length - 1) {
+                //increase the index and use it to determine the actual worker to assign
+                this.lastAssignedWorker++;
+                assignedWorker = this.workers[this.lastAssignedWorker];
+            } else {
+                //reset index and assing work to last element in the array
+                assignedWorker = this.workers[this.workers.length - 1];
+                this.lastAssignedWorker = -1;
+            }
+        }
+    }
+    return assignedWorker;
+}
+
+ThreadManager.prototype.createAndGiveWork = function (eHandler, event, context) {
+    const newWorker = new Worker(this.callerPath + this.filePath)
+    this.workers.push(newWorker);
+    newWorker.onmessage = eHandler;
+    this.giveWork(newWorker, event, context);
+};
 
 module.exports = ThreadManager;

@@ -36,9 +36,13 @@ Brain.prototype.onAIOrder = function(order){
         isOrderCorrect = true;
     }
     if(isOrderCorrect){
+
         this.host.orders.push(order);
-        if(order.replace){
+        if(order.replace && this.host.orders[0] != order){
             this.host.clearOrder();
+        }
+        if(order.type == 'useElevator'){
+            console.log(this.host.orders,this.host.currentOrder, order);
         }
     }
     

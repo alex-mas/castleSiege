@@ -24,7 +24,7 @@ const SiegeTower = function (game, x, y, spriteName, player, attributes, brain) 
     this.__type__ = 'siegeTower';
     //unit implements moving and attributes
     Unit.call(this, game, x, y, spriteName, player, attributes);
-
+    this.body.debug = true;
     this.body.mass = 2385+Math.random()*45;
     //define its brain
     this.brain = brain || new SiegeTowerBrain(game, this, player);
@@ -32,6 +32,7 @@ const SiegeTower = function (game, x, y, spriteName, player, attributes, brain) 
     this.status = {
         settled: false
     };
+    this.lockAngle = undefined;
 }
 
 SiegeTower.prototype = Object.create(Unit.prototype);
@@ -41,16 +42,17 @@ SiegeTower.prototype.constructor = SiegeTower;
 //Sets up the unit staticly in its current position
 SiegeTower.prototype.settle = function(){
     console.log('settled');
-    this.body.static = true;
-    this.status.settled = true;
-    this.body.immovable = true;
-    this.body.moves = false;
-    this.body.debug = true;
+    this.lockAngle = this.body.angle;
+    this.body.angularVelocity = 0;
+    this.body.fixedForation = true;
+    this.body.kinematic = true;
     this.brain.isHostSettled = true;
     this.attributes.ms = 0;
     this.body.clearCollision();
-    this.body.collides(this.game._collisionGroups.walls);
-    this.stop();
+    this.game.grid.collisionGrid[0][this.gridY][this.gridX] = 0;
+    this.game.grid.collisionGrid[1][this.gridY][this.gridX] = 0;
+    this.game.grid.tileGrid[this.gridY][this.gridX].body.clearCollision();
+    this.game.grid.tileGrid[this.gridY][this.gridX].body.debug = true;
 }
 
 
@@ -93,7 +95,7 @@ SiegeTower.prototype.executeOrders = function () {
                     const y = utils.gridToPoint(this.currentOrder.points[0][1],true);
                     const distance = utils.getDistance([this.x, this.y], [x,y]);
                     console.log(distance);
-                    if(distance <= 87.137){
+                    if(distance <= 64.05){
                         this.clearOrder();
                     }
                 }
@@ -113,10 +115,11 @@ SiegeTower.prototype.update = function () {
     }
     if(this.status.settled)
     {
+        console.log(this.body);
         this.stop();
-        this.body.setZeroDamping();
         this.body.setZeroForce();
         this.body.setZeroVelocity();
+        this.body.angle = this.lockAngle;
     }
 
 }

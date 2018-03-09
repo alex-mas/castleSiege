@@ -68,7 +68,6 @@ ThreadManager.prototype.initializeWorkers = function (amount) {
         if (amount && initializedWorkers >= amount) return;
         this.workers.push(new Worker(this.callerPath + this.filePath));
         this.workers[i].onmessage = this.onMessage;
-        this.workerStatus[i] = 'idle';
         initializedWorkers++;
     }
 };
@@ -113,10 +112,10 @@ ThreadManager.prototype.broadcast = function (event, context, callback) {
         this.initializeWorkers();
     }
     for (let i = 0; i < this.workers.length; i++) {
-        if (workHandler !== this.worker[i].onMessage) {
-            this.worker[i].onmessage = workHandler;
+        if (workHandler !== this.workers[i].onMessage) {
+            this.workers[i].onmessage = workHandler;
         }
-        this.giveWork(this.worker[i], event, context);
+        this.giveWork(this.workers[i], event, context);
     }
 }
 
@@ -133,7 +132,7 @@ ThreadManager.prototype.giveWork = function (worker, event, context) {
 
 
 ThreadManager.prototype.chooseWorker = function () {
-    const assignedWorker;
+    let assignedWorker;
     if (this.workers.length == 1) {
         assignedWorker = this.workers[0];
     } else if (this.config.distributionMethod === "round_robin") {

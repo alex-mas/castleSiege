@@ -60,8 +60,8 @@ AI.prototype.parseUnitData = function (unit) {
         team: unit.owner.team._id,
         id: unit._id,
         health: unit.health,
-        x: unit.x,
-        y: unit.y,
+        x: unit.centerX,
+        y: unit.centerY,
         altitudeLayer: unit.altitudeLayer
     };
     

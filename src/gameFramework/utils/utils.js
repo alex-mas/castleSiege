@@ -24,7 +24,7 @@ const findById = (id,game)=>{
 };
 
 const getDistance = (origin, destination)=>{
-    return Math.sqrt((origin[0] - destination[0]) ** 2 + (origin[0] - destination[0]) ** 2);
+    return Math.sqrt(((origin[0] - destination[0]) ** 2) + ((origin[1] - destination[1]) ** 2));
 }
 
 module.exports ={

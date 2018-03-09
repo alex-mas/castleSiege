@@ -28,15 +28,16 @@ const Pawn = function (game, x, y, spriteName, player, attributes) {
     Phaser.Sprite.call(this, game, x, y,'frames',spriteName);
     game.physics.p2.enable(this);
     game.add.existing(this);
-
+    
     this.anchor.x = 0.5;
     this.anchor.y = 0.5;
+   
     
     if(this.__type__ != 'siegeTower'){
         this.body.mass = 155+Math.random()*45;
         this.body.clearShapes();
         this.body.addCircle(16);
-        //this.body.debug = true;
+        this.body.debug = true;
         //this.body.kinematic = true;
     }
 
@@ -79,7 +80,6 @@ const Pawn = function (game, x, y, spriteName, player, attributes) {
     } else {
         this.attributes.ms = 125;
     }
-
 };
 
 /*        Inheritance required methods            */
@@ -181,6 +181,7 @@ Pawn.prototype.stop = function () {
 
 Pawn.prototype.update = function () {
     this.setGridPosition();
+
 };
 
 

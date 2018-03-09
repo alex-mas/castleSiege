@@ -226,7 +226,7 @@ function create() {
                     attack: [{
                         isOnCd: false,
                         cd: 456,
-                        damage: 60,
+                        damage: 160,
                         range: 63
                     }]
                 }
@@ -262,6 +262,7 @@ function update() {
     //console.log(game.time.fps);
     regularAi.update(undefined, SHOULD_GRID_UPDATE);
 
+    //console.log(game.input.mousePointer.x, game.input.mousePointer.y);
     //custom game update logic, most logic is called on the update methods of instantiated game objects tho
 }
 

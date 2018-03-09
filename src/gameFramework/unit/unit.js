@@ -60,10 +60,13 @@ Unit.prototype.computeMove = function (x, y) {
  * Function responsible for executing a move order
  */
 Unit.prototype.executeMove = function () {
-    if(this.currentOrder.points.length == 1)
+    if(this.currentOrder.points.length == 1 && this.currentOrder.type == 'staticMovement')
     {
-        console.log(this.currentOrder);
+        console.log("target grid points",
+            utils.pointToGrid(this.currentOrder.x), 
+            utils.pointToGrid(this.currentOrder.y));
         console.log(this.altitudeLayer);
+        console.log("Grid points: ",this.gridX, this.gridY);
     }
     if (this.currentOrder.points.length > 0) {
         //determine what is the next step in grid points
@@ -207,11 +210,12 @@ Unit.prototype.executeOrders = function () {
             }
             break;
         case 'useElevator':
+            console.log(this.currentOrder);
             const elevator = this.currentOrder.target;
-            let distance = Math.sqrt((elevator.x - this.x) ** 2 + (elevator.y - this.y) ** 2);
+            let distance =  utils.getDistance([elevator.x, elevator.y],[this.x, this.y]);
             console.log('order is useElevator');
             console.log('distance of ', distance);
-            if(distance > 64){
+            if(distance > 32){
                 this.clearOrder();
             }else{
                 console.log('using elevator');

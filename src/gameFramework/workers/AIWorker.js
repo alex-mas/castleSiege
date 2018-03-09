@@ -64,10 +64,11 @@ const sendUseElevatorOrder = function (event, actor, elevator, replaceOrder = fa
         event: event,
         order: {
             type: 'useElevator',
-            replace: replaceOrder
+            replace: replaceOrder,
+            target: elevator.id
         },
         actor: actor.id,
-        target: elevator
+
     });
 }
 
@@ -131,14 +132,14 @@ const getClosestWallSection = function (actor) {
         for (let x = 0; x < gameContext.grid[heightLevel][y].length; x++) {
             if (gameContext.grid[heightLevel][y][x] == heightLevel) continue;
             if (optimalWallTarget) {
-                let distance = Math.sqrt((utils.gridToPoint(x) - actor.x) ** 2 + (utils.gridToPoint(y) - actor.y) ** 2);
+                let distance = Math.sqrt((utils.gridToPoint(x, true) - actor.x) ** 2 + (utils.gridToPoint(y,true) - actor.y) ** 2);
                 if (distance < distanceToWall) {
                     optimalWallTarget = [x, y];
                     distanceToWall = distance;
                 }
             } else {
                 optimalWallTarget = [x, y];
-                distanceToWall = Math.sqrt((utils.gridToPoint(x) - actor.x) ** 2 + (utils.gridToPoint(y) - actor.y) ** 2);
+                distanceToWall = Math.sqrt((utils.gridToPoint(x,true) - actor.x) ** 2 + (utils.gridToPoint(y,true) - actor.y) ** 2);
             }
         }
     }
@@ -156,13 +157,13 @@ const searchElevator = function (actor) {
         ) {
             if (closestElevator) {
 
-                let distance = Math.sqrt((elevator.x - actor.x) ** 2 + (elevator.y - actor.y) ** 2);
+                let distance = utils.getDistance([elevator.x, elevator.y], [actor.x, actor.y]);
                 if (distance < distanceToElevator) {
                     closestElevator = elevator;
                 }
             } else {
                 closestElevator = elevator;
-                distanceToElevator = Math.sqrt((elevator.x - actor.x) ** 2 + (elevator.y - actor.y) ** 2);
+                distanceToElevator = utils.getDistance([elevator.x, elevator.y], [actor.x, actor.y]);
             }
         }
     }
@@ -243,9 +244,10 @@ onmessage = function (e) {
                     if (!enemy) {
                         const elevator = searchElevator(actor);
                         if (elevator) {
-                            let distance = Math.sqrt((elevator.x - actor.x) ** 2 + (elevator.y - actor.y) ** 2);
+                            let distance = utils.getDistance([elevator.x, elevator.y], [actor.x, actor.y]);
                             //if in range, send order to climb either send static move
-                            if (distance < 16) {
+                            if (distance < 32) {
+                                console.log('sent use elevator order');
                                 sendUseElevatorOrder(event, actor, elevator, true);
                                 return;
                             } else {
@@ -302,10 +304,11 @@ onmessage = function (e) {
                         if (!enemy) {
                             const elevator = searchElevator(actor);
                             if (elevator) {
-                                let distance = Math.sqrt((elevator.x - actor.x) ** 2 + (elevator.y - actor.y) ** 2);
+                                let distance = utils.getDistance([elevator.x, elevator.y], [actor.x, actor.y]);
                                 //if in range, send order to climb either send static move
-                                if (distance < 16) {
-                                    sendUseElevatorOrder(event, actor, true);
+                                if (distance < 32) {
+                                    console.log('sent use elevator order');
+                                    sendUseElevatorOrder(event, actor,elevator, true);
                                     return;
                                 } else {
                                     sendStaticMovementOrder(event, elevator.x, elevator.y, actor);
@@ -358,9 +361,10 @@ onmessage = function (e) {
                     //TODO: The problem lies in the fact that the unit center is probably wrongly aligned 
                     const distance = utils.getDistance(points.map((point)=>utils.gridToPoint(point,true)), [actor.x, actor.y]);
                     console.log(points);
+                    console.log('traduced to points that is ', points.map((point)=>utils.gridToPoint(point,true)));
                     console.log([actor.x, actor.y]);
                     console.log('Distance inside worker is reported to be: ', distance);
-                    if (distance <= 87.137) {
+                    if (distance <= 64.05) {
                         sendSettleOrder(event, actor);
                         return;
                     } else {

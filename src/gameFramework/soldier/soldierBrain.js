@@ -88,8 +88,8 @@ SoldierBrain.prototype.update = function (context) {
         if (this.host.currentOrder &&
             this.host.currentOrder.type === "dynamicMovement" &&
             (
-                this.__counter % 321 === 0 &&
-                !this.host.currentOrder.target.alive
+                this.__counter % 321 === 0 //&&
+                //!this.host.currentOrder.target.alive
             )
         ) {
             /* if(this.__counter > 2300){

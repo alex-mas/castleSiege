@@ -45,6 +45,9 @@ Soldier.prototype.attack = function (attackIndex, target) {
     if (!this.isInAttackRange(attackIndex, target)) {
         return true;
     }
+    if(!attack.ranged && target.altitudeLayer != this.altitudeLayer){
+        return true;
+    }
     if (!attack.isOnCd) {
         attack.isOnCd = true;
         //Handle reverting cd status after it expires

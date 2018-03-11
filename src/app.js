@@ -227,8 +227,10 @@ function create() {
                         isOnCd: false,
                         cd: 456,
                         damage: 160,
-                        range: 63
-                    }]
+                        range: 320,
+                        ranged: true
+                    }],
+                    isRanged: true
                 }
             );
             let unit2 = new gameFramework.Soldier(

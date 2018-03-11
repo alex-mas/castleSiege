@@ -28,7 +28,7 @@ const sendAttackOrder = function (event, attackIndex, target, actor, replaceOrde
     });
 }
 
-const sendDynamicMovementOrder = function (event, target, actor, replaceOrder = false) {
+const sendDynamicMovementOrder = function (event, target, actor, replaceOrder = false, goCloseTo = false) {
     postMessage({
         event: event,
         order: {
@@ -37,13 +37,14 @@ const sendDynamicMovementOrder = function (event, target, actor, replaceOrder = 
             points: undefined,
             computed: false,
             beingComputed: false,
-            replace: replaceOrder
+            replace: replaceOrder,
+            goCloseTo
         },
         actor: actor.id
     });
 }
 
-const sendStaticMovementOrder = function (event, x, y, actor, replaceOrder = false) {
+const sendStaticMovementOrder = function (event, x, y, actor, replaceOrder = false, goCloseTo = false) {
     postMessage({
         event: event,
         order: {
@@ -53,7 +54,8 @@ const sendStaticMovementOrder = function (event, x, y, actor, replaceOrder = fal
             points: undefined,
             computed: false,
             beingComputed: false,
-            replace: replaceOrder
+            replace: replaceOrder,
+            goCloseTo
         },
         actor: actor.id
     });
@@ -132,14 +134,14 @@ const getClosestWallSection = function (actor) {
         for (let x = 0; x < gameContext.grid[heightLevel][y].length; x++) {
             if (gameContext.grid[heightLevel][y][x] == heightLevel) continue;
             if (optimalWallTarget) {
-                let distance = Math.sqrt((utils.gridToPoint(x, true) - actor.x) ** 2 + (utils.gridToPoint(y,true) - actor.y) ** 2);
+                let distance = Math.sqrt((utils.gridToPoint(x, true) - actor.x) ** 2 + (utils.gridToPoint(y, true) - actor.y) ** 2);
                 if (distance < distanceToWall) {
                     optimalWallTarget = [x, y];
                     distanceToWall = distance;
                 }
             } else {
                 optimalWallTarget = [x, y];
-                distanceToWall = Math.sqrt((utils.gridToPoint(x,true) - actor.x) ** 2 + (utils.gridToPoint(y,true) - actor.y) ** 2);
+                distanceToWall = Math.sqrt((utils.gridToPoint(x, true) - actor.x) ** 2 + (utils.gridToPoint(y, true) - actor.y) ** 2);
             }
         }
     }
@@ -179,7 +181,7 @@ const chooseTargetFrom = function (enemies, actor) {
         let enemy = enemies[i];
 
         if (enemy.health < 0) continue;
-        if (enemy.altitudeLayer !== actor.altitudeLayer) continue;
+        if (enemy.altitudeLayer !== actor.altitudeLayer && !actor.attributes.isRanged) continue;
         if (enemy.type === 'siegeTower') continue;
 
         let distance = Math.sqrt((enemy.x - actor.x) ** 2 + (enemy.y - actor.y) ** 2);
@@ -192,7 +194,7 @@ const chooseTargetFrom = function (enemies, actor) {
 }
 
 const isInAttackRange = function (actor, attack, enemy) {
-    let dx = enemy.x - actor.x,
+    var dx = enemy.x - actor.x,
         dy = enemy.y - actor.y,
         distance = Math.sqrt(dx ** 2 + dy ** 2);
     if (distance <= attack.range) {
@@ -201,6 +203,45 @@ const isInAttackRange = function (actor, attack, enemy) {
         return false
     }
 }
+
+const isAttackValid = function (actor, attack, enemy) {
+    if (attack.ranged) {
+        return isInAttackRange(actor, attack, enemy);
+    }
+    if (actor.altitudeLayer == enemy.altitudeLayer && isInAttackRange(actor, attack, enemy)) {
+        return true;
+    } else {
+        return false;
+    }
+
+}
+
+
+const chooseOptimalAttack = function (actor, attacks, enemy) {
+    let maximumDamage = 0;
+    let optimalAttack = undefined;
+    if (attacks.length === 1) {
+        if (isAttackValid(actor, attacks[0], enemy)) {
+            return 0;
+        } else {
+            return undefined;
+        }
+    } else if (attacks.length < 1) {
+        return undefined;
+    } else {
+        for (let i = 0; i < attacks.length; i++) {
+            let attack = attacks[i];
+            if (isAttackValid(actor, attack, enemy)) {
+                if (attack.damage > maximumDamage) {
+                    maximumDamage = attack.damage;
+                    optimalAttack = i;
+                }
+            }
+        }
+        return optimalAttack;
+    }
+}
+
 
 onmessage = function (e) {
 
@@ -257,34 +298,13 @@ onmessage = function (e) {
 
                         }
                     } else {
-                        let maximumDamage = 0;
-                        let optimalAttack = undefined;
-                        let shouldCheckAttacks = true;
-                        if (attacks.length === 1) {
-                            if (isInAttackRange(actor, attacks[0], enemy)) {
-                                optimalAttack = 0;
-                            } else {
-                                shouldCheckAttacks = false;
-                            }
-
-                        } else if (attacks.length < 1) {
-                            shouldCheckAttacks = false;
-                        } else if (shouldCheckAttacks) {
-                            for (let i = 0; i < attacks.length; i++) {
-                                let attack = attacks[i];
-                                if (isInAttackRange(actor, attack, enemy)) {
-                                    if (attack.damage > maximumDamage) {
-                                        maximumDamage = attack.damage;
-                                        optimalAttack = i;
-                                    }
-                                }
-                            }
-                        }
+                        let optimalAttack = chooseOptimalAttack(actor, attacks, enemy);
+                        let goCloseTo = actor.attributes.isRanged ? true: false;
                         if (optimalAttack !== undefined) {
-                            sendAttackOrder(event, optimalAttack, enemy, actor);
+                            sendAttackOrder(event, optimalAttack, enemy, actor,true);
                             return;
                         } else {
-                            sendDynamicMovementOrder(event, enemy, actor);
+                            sendDynamicMovementOrder(event, enemy, actor,true, goCloseTo);
                             return;
                         }
                     }
@@ -308,7 +328,7 @@ onmessage = function (e) {
                                 //if in range, send order to climb either send static move
                                 if (distance < 32) {
                                     console.log('sent use elevator order');
-                                    sendUseElevatorOrder(event, actor,elevator, true);
+                                    sendUseElevatorOrder(event, actor, elevator, true);
                                     return;
                                 } else {
                                     sendStaticMovementOrder(event, elevator.x, elevator.y, actor);
@@ -321,22 +341,13 @@ onmessage = function (e) {
                             return;
                         } else {
                             if (enemy.id !== orders[0].target.id) {
-                                let maximumDamage = 0;
-                                let optimalAttack = undefined;
-                                for (let i = 0; i < attacks.length; i++) {
-                                    let attack = attacks[i];
-                                    if (isInAttackRange(actor, attack, enemy)) {
-                                        if (attack.damage > maximumDamage) {
-                                            maximumDamage = attack.damage;
-                                            optimalAttack = i;
-                                        }
-                                    }
-                                }
+                                let optimalAttack = chooseOptimalAttack(actor, attacks, enemy);
+                                let goCloseTo = actor.attributes.isRanged ? true: false;
                                 if (optimalAttack !== undefined) {
                                     sendAttackOrder(event, optimalAttack, enemy, actor, true);
                                     return;
                                 } else {
-                                    sendDynamicMovementOrder(event, enemy, actor, true);
+                                    sendDynamicMovementOrder(event, enemy, actor, true, goCloseTo);
                                     return;
                                 }
                             }
@@ -359,9 +370,9 @@ onmessage = function (e) {
                 const points = getClosestWallSection(actor);
                 if (points) {
                     //TODO: The problem lies in the fact that the unit center is probably wrongly aligned 
-                    const distance = utils.getDistance(points.map((point)=>utils.gridToPoint(point,true)), [actor.x, actor.y]);
+                    const distance = utils.getDistance(points.map((point) => utils.gridToPoint(point, true)), [actor.x, actor.y]);
                     console.log(points);
-                    console.log('traduced to points that is ', points.map((point)=>utils.gridToPoint(point,true)));
+                    console.log('traduced to points that is ', points.map((point) => utils.gridToPoint(point, true)));
                     console.log([actor.x, actor.y]);
                     console.log('Distance inside worker is reported to be: ', distance);
                     if (distance <= 64.05) {
@@ -370,7 +381,7 @@ onmessage = function (e) {
                     } else {
                         console.log(points);
                         console.log([actor.x, actor.y]);
-                        sendStaticMovementOrder(event, utils.gridToPoint(points[0],true), utils.gridToPoint(points[1],true), actor);
+                        sendStaticMovementOrder(event, utils.gridToPoint(points[0], true), utils.gridToPoint(points[1], true), actor, false, true);
                         return;
                     }
                 } else {

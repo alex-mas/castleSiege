@@ -37,7 +37,7 @@ const Pawn = function (game, x, y, spriteName, player, attributes) {
         this.body.mass = 155+Math.random()*45;
         this.body.clearShapes();
         this.body.addCircle(16);
-        this.body.debug = true;
+        //this.body.debug = true;
         //this.body.kinematic = true;
     }
 
@@ -78,7 +78,7 @@ const Pawn = function (game, x, y, spriteName, player, attributes) {
             this.setHealth(this.maxHealth);
         }
     } else {
-        this.attributes.ms = 125;
+        this.attributes.ms = 95;
     }
 };
 

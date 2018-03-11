@@ -42,6 +42,7 @@ SiegeTower.prototype.constructor = SiegeTower;
 //Sets up the unit staticly in its current position
 SiegeTower.prototype.settle = function(){
     console.log('settled');
+    this.status.settled = true;
     this.lockAngle = this.body.angle;
     this.body.angularVelocity = 0;
     this.body.fixedForation = true;
@@ -55,6 +56,21 @@ SiegeTower.prototype.settle = function(){
     this.game.grid.tileGrid[this.gridY][this.gridX].body.debug = true;
 }
 
+
+SiegeTower.prototype.unSettle = function(){
+    const grid = this.game.grid;
+    this.status.settled = false;
+    this.body.dynamic = true;
+    this.brain.isHostSettled = false;
+    this.attributes.ms = 30;
+    grid.collisionGrid[0][this.gridY][this.gridX] = 0;
+    grid.collisionGrid[1][this.gridY][this.gridX] = 1;
+    grid.tileGrid[this.gridY][this.gridX].body.setCollisionGroup(this.game._collisionGroups.grass);
+    grid.tileGrid[this.gridY][this.gridX].body.collides([this.game._collisionGroups.level[1],this.game._collisionGroups.walls]);
+    this.updateCollisionGroup();
+    this.updateCollisionParams();
+
+}
 
 /**
  * @description changes the altitude of the given unit
@@ -112,14 +128,8 @@ SiegeTower.prototype.update = function () {
     if (this.alive) {
         Unit.prototype.update.call(this);
         this.brain.update(0);
-    }
-    if(this.status.settled)
-    {
-        console.log(this.body);
-        this.stop();
-        this.body.setZeroForce();
-        this.body.setZeroVelocity();
-        this.body.angle = this.lockAngle;
+    }else if(this.status.settled){
+        this.unSettle();
     }
 
 }

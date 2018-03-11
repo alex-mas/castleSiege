@@ -50,7 +50,7 @@ Unit.prototype.computeMove = function (x, y) {
         to: [x, y],
         id: this._id,
         level: this.altitudeLayer,
-        goCloseTo: this.__type__ == 'siegeTower'
+        goCloseTo: this.currentOrder.goCloseTo
     });
 }
 

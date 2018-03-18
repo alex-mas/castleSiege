@@ -57,9 +57,9 @@ const Pawn = function (game, x, y, spriteName, player, attributes) {
     //initialize altitude
     this.altitudeLayer;
     this.setAltitudeLayer();
-    if(this.altitudeLayer === 1){
+    /*if(this.altitudeLayer === 1){
         this.body.debug = true;
-    }
+    }*/
 
     //initialize collision data
     this.updateCollisionGroup();

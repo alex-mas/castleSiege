@@ -188,7 +188,7 @@ AI.prototype.threadCallback = function (e) {
 
 AI.prototype.update = function (init, updateGrid) {
     if (!this.nextContextUpdate || this.nextContextUpdate <= 0) {
-        this.nextContextUpdate = 1 + this.amountOfUnits / (Math.E * Math.PI);
+        this.nextContextUpdate = 1 + this.amountOfUnits / (5*Math.E * Math.PI);
         if (init) {
             this.broadcastContextInitialization();
         } else {

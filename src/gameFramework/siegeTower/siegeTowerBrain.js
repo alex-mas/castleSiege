@@ -41,7 +41,8 @@ SiegeTowerBrain.prototype.getHostContext = function(){
         y: this.host.y,
         id: this.host._id,
         attributes: this.host.attributes,
-        orders: this.sanitizeOrders()
+        orders: this.sanitizeOrders(),
+        settled: this.host.status.settled
     };
 }
 

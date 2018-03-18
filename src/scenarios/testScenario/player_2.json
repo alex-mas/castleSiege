@@ -1,0 +1,50 @@
+{
+    "id": "player2",
+    "units":[
+        {
+            "type": "archer",
+            "x": 1700,
+            "y": 32
+        },
+        {
+            "type": "archer",
+            "x": 1700,
+            "y": 64
+        },
+        {
+            "type": "archer",
+            "x": 1700,
+            "y": 96
+        },
+        {
+            "type": "archer",
+            "x": 1700,
+            "y": 128
+        },
+        {
+            "type": "archer",
+            "x": 1700,
+            "y": 160
+        },
+        {
+            "type": "archer",
+            "x": 1700,
+            "y": 192
+        },
+        {
+            "type": "archer",
+            "x": 1700,
+            "y": 224
+        },
+        {
+            "type": "archer",
+            "x": 1700,
+            "y": 256
+        },
+        {
+            "type": "archer",
+            "x": 1700,
+            "y": 288
+        }
+    ]
+}

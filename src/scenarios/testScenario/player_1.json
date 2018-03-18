@@ -1,0 +1,55 @@
+{
+    "id": "player1",
+    "units":[
+        {
+            "type": "soldier",
+            "x": 32,
+            "y": 32
+        },
+        {
+            "type": "soldier",
+            "x": 32,
+            "y": 32
+        },
+        {
+            "type": "soldier",
+            "x": 32,
+            "y": 64
+        },
+        {
+            "type": "soldier",
+            "x": 32,
+            "y": 96
+        },
+        {
+            "type": "soldier",
+            "x": 32,
+            "y": 128
+        },
+        {
+            "type": "soldier",
+            "x": 32,
+            "y": 160
+        },
+        {
+            "type": "soldier",
+            "x": 32,
+            "y": 192
+        },
+        {
+            "type": "soldier",
+            "x": 32,
+            "y": 224
+        },
+        {
+            "type": "soldier",
+            "x": 32,
+            "y": 256
+        },
+        {
+            "type": "soldier",
+            "x": 32,
+            "y": 288
+        }
+    ]
+}

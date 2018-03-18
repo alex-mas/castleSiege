@@ -8,7 +8,6 @@ const CPU_COUNT = os.cpus().length;
 //Styles
 import "./stylesheets/reset.css";
 import "./stylesheets/main.css";
-
 //Logging module
 const logger = require('./dev_modules/logger.js');
 //Game engine
@@ -20,6 +19,10 @@ const logger = require('./dev_modules/logger.js');
 const gameFramework = require('./gameFramework/gameFramework.js');
 //Custom environment variables
 import env from "env";
+
+import testScenario from './scenarios/testScenario/castle.json';
+import testP1 from './scenarios/testScenario/player_1.json';
+import testP2 from './scenarios/testScenario/player_2.json';
 
 
 const Soldier = gameFramework.Soldier;
@@ -103,13 +106,13 @@ redTeam.addEnemy(blueTeam);
 blueTeam.addEnemy(redTeam);
 game._teams.push(redTeam);
 game._teams.push(blueTeam);
+// player init
+/*
 const redPlayer = new gameFramework.Player(gameFramework.PlayerType.AI, undefined, redTeam, regularAi);
 const bluePlayer = new gameFramework.Player(gameFramework.PlayerType.AI, undefined, blueTeam, regularAi);
 game._players.push(redPlayer);
 game._players.push(bluePlayer);
-
-
-
+*/
 
 function preload() {
     if (env.name !== "production") {
@@ -136,7 +139,7 @@ function paintWorldGround() {
         game.grid.tileGrid[y] = [];
         for (var x = 0; x < window.innerWidth / 64; x++) {
             var spriteNumber = 1 + Math.round(Math.random() * 6);
-            game.grid.tileGrid[y][x] = new Phaser.Sprite(game, 32+(64 * x), 32+(64 * y), 'frames', `tile_0${spriteNumber}.png`);
+            game.grid.tileGrid[y][x] = new Phaser.Sprite(game, 32 + (64 * x), 32 + (64 * y), 'frames', `tile_0${spriteNumber}.png`);
             var currentTile = game.grid.tileGrid[y][x];
             currentTile.anchor.y = 0.5;
             currentTile.anchor.y = 0.5;
@@ -151,15 +154,132 @@ function paintWorldGround() {
                 currentTile.body.collides([game._collisionGroups.level[0], game._collisionGroups.grass]);
             } else {
                 currentTile.body.setCollisionGroup(game._collisionGroups.grass);
-                currentTile.body.collides([game._collisionGroups.level[1],game._collisionGroups.walls]);
+                currentTile.body.collides([game._collisionGroups.level[1], game._collisionGroups.walls]);
                 game.grid.collisionGrid[0][y][x] = 0;
                 game.grid.collisionGrid[1][y][x] = 1;
-                
+
             }
-            
+
         }
     }
 }
+
+function loadScenario(scenario) {
+    for (var y = 0; y < scenario.layout.length; y++) {
+        game.grid.collisionGrid[0][y] = [];
+        game.grid.collisionGrid[1][y] = [];
+        game.grid.tileGrid[y] = [];
+        for (var x = 0; x < scenario.layout[y].length; x++) {
+            if (scenario.layout[y][x] == 0) {
+                var spriteNumber = 1 + Math.round(Math.random() * 5);
+                game.grid.tileGrid[y][x] = new Phaser.Sprite(game, 32 + (64 * x), 32 + (64 * y), 'frames', `tile_0${spriteNumber}.png`);
+                var currentTile = game.grid.tileGrid[y][x];
+                currentTile.anchor.y = 0.5;
+                currentTile.anchor.y = 0.5;
+                game.add.existing(currentTile);
+                game.physics.p2.enable(currentTile);
+                currentTile.body.kinematic = true;
+                currentTile.body.setCollisionGroup(game._collisionGroups.grass);
+                currentTile.body.collides([game._collisionGroups.level[1], game._collisionGroups.walls]);
+                game.grid.collisionGrid[0][y][x] = 0;
+                game.grid.collisionGrid[1][y][x] = 1;
+
+            } else {
+                game.grid.tileGrid[y][x] = new Phaser.Sprite(game, 32 + (64 * x), 32 + (64 * y), 'frames', `tile_07.png`);
+                var currentTile = game.grid.tileGrid[y][x];
+                currentTile.anchor.y = 0.5;
+                currentTile.anchor.y = 0.5;
+                game.add.existing(currentTile);
+                game.physics.p2.enable(currentTile);
+                currentTile.body.kinematic = true;
+                currentTile.body.setCollisionGroup(game._collisionGroups.walls);
+                currentTile.body.collides([game._collisionGroups.level[0], game._collisionGroups.grass]);
+                game.grid.collisionGrid[0][y][x] = 1;
+                game.grid.collisionGrid[1][y][x] = 0;
+
+            }
+        }
+    }
+}
+
+
+function initializeSoldier(player, x, y) {
+    let skin = 'axeRed.png'
+    if (player._id !== 'player1') {
+        skin = 'axeBlue.png'
+    }
+    let unit = new gameFramework.Soldier(
+        game,
+        x,
+        y,
+        skin,
+        player,
+        {
+            health: 100,
+            ms: 60,
+            attack: [{
+                isOnCd: false,
+                cd: 456,
+                damage: 60,
+                range: 63,
+                ranged: false
+            }],
+            isRanged: false
+        }
+    );
+    game._units.push(unit);
+    game._unitIds[unit._id] = unit;
+}
+function initializeArcher(player, x, y) {
+    let skin = 'bowRed.png'
+    if (player._id !== 'player1') {
+        skin = 'bowBlue.png'
+    }
+    let unit = new gameFramework.Soldier(
+        game,
+        x,
+        y,
+        skin,
+        player,
+        {
+            health: 85,
+            ms: 60,
+            attack: [{
+                isOnCd: false,
+                cd: 456,
+                damage: 40,
+                range: 263,
+                ranged: true
+            }],
+            isRanged: true
+        }
+    );
+    game._units.push(unit);
+    game._unitIds[unit._id] = unit;
+}
+function initializeUnit(type, player, x, y) {
+    if (type === 'soldier') {
+        initializeSoldier(player, x, y);
+    } else if (type === 'siegeTower') {
+
+    } else if (type === 'archer') {
+        initializeArcher(player, x, y);
+    }
+}
+function initializePlayer(_player) {
+    let player = undefined;
+    if (_player.id === 'player1') {
+        player = new gameFramework.Player(gameFramework.PlayerType.AI, _player.id, redTeam, regularAi);
+    } else if (_player.id === 'player2') {
+        player = new gameFramework.Player(gameFramework.PlayerType.AI, _player.id, blueTeam, regularAi);
+    }
+    game._players.push(player);
+    for(var i =0; i < _player.units.length; i++){
+        const unit = _player.units[i]
+        initializeUnit(unit.type, player, unit.x, unit.y);
+    }
+}
+
 
 //called on game start
 function create() {
@@ -181,7 +301,7 @@ function create() {
     game._collisionGroups = {
         grass: game.physics.p2.createCollisionGroup(),
         walls: game.physics.p2.createCollisionGroup(),
-        level:[
+        level: [
             game.physics.p2.createCollisionGroup(),
             game.physics.p2.createCollisionGroup(),
         ]
@@ -190,7 +310,12 @@ function create() {
 
     game.physics.p2.updateBoundsCollisionGroup();
 
-    paintWorldGround();
+    //paintWorldGround();
+    loadScenario(testScenario);
+    initializePlayer(testP1);
+    initializePlayer(testP2);
+    console.log(game.grid.collisionGrid);
+    console.log(game.grid.tileGrid);
     //basic initialization
     regularAi.update(true, true);
 
@@ -203,7 +328,7 @@ function create() {
         500,
         500,
         'tile_45.png',
-        redPlayer,
+            game._players[0],
         {
             health: 2500,
             ms: 30
@@ -211,9 +336,10 @@ function create() {
     )
     game._units.push(test);
     game._unitIds[test._id] = test;
+/*
     //instantiate all the units in recrangular formation
-    for (let j = 0; j < 6; j++) {
-        for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 10; j++) {
+        for (let i = 0; i < 4; i++) {
             let unit = new gameFramework.Soldier(
                 game,
                 32 + 32 * j,
@@ -221,16 +347,16 @@ function create() {
                 'axeRed.png',
                 redPlayer,
                 {
-                    health: 190,
+                    health: 100,
                     ms: 60,
                     attack: [{
                         isOnCd: false,
                         cd: 456,
-                        damage: 160,
-                        range: 320,
-                        ranged: true
+                        damage: 60,
+                        range: 63,
+                        ranged: false
                     }],
-                    isRanged: true
+                    // isRanged: false
                 }
             );
             let unit2 = new gameFramework.Soldier(
@@ -246,8 +372,10 @@ function create() {
                         isOnCd: false,
                         cd: 456,
                         damage: 60,
-                        range: 63
-                    }]
+                        range: 63,
+                        ranged: false
+                    }],
+                    //isRanged: true
                 }
             );
             game._units.push(unit, unit2);
@@ -255,7 +383,7 @@ function create() {
             game._unitIds[unit2._id] = unit2;
         }
     }
-
+    */
 
 }
 

@@ -149,16 +149,18 @@ const getClosestWallSection = function (actor) {
 }
 
 const searchElevator = function (actor) {
+    if(gameContext.elevators.length === 1)
+        return gameContext.elevators[0];
     let closestElevator = undefined;
     let distanceToElevator = undefined;
     for (let i = 0; i < gameContext.elevators.length; i++) {
         const elevator = gameContext.elevators[i];
+        console.log(elevator);
         if (
             elevator.team === actor.team
-            //&& elevator.settled
+            //elevator.settled
         ) {
             if (closestElevator) {
-
                 let distance = utils.getDistance([elevator.x, elevator.y], [actor.x, actor.y]);
                 if (distance < distanceToElevator) {
                     closestElevator = elevator;
@@ -177,13 +179,10 @@ const chooseTargetFrom = function (enemies, actor) {
     let minimumDistance = 90000;
     //loop all enemies and save the closest one
     for (var i = 0; i < enemies.length; i++) {
-
         let enemy = enemies[i];
-
         if (enemy.health < 0) continue;
         if (enemy.altitudeLayer !== actor.altitudeLayer && !actor.attributes.isRanged) continue;
-        if (enemy.type === 'siegeTower') continue;
-
+        //if (enemy.type === 'siegeTower') continue;
         let distance = Math.sqrt((enemy.x - actor.x) ** 2 + (enemy.y - actor.y) ** 2);
         if (distance < minimumDistance) {
             minimumDistance = distance;
@@ -287,7 +286,7 @@ onmessage = function (e) {
                         if (elevator) {
                             let distance = utils.getDistance([elevator.x, elevator.y], [actor.x, actor.y]);
                             //if in range, send order to climb either send static move
-                            if (distance < 32) {
+                            if (distance < 48  && elevator.settled) {
                                 console.log('sent use elevator order');
                                 sendUseElevatorOrder(event, actor, elevator, true);
                                 return;
@@ -323,10 +322,10 @@ onmessage = function (e) {
                         let enemy = chooseTargetFrom(enemies, actor);
                         if (!enemy) {
                             const elevator = searchElevator(actor);
-                            if (elevator) {
+                            if (elevator ) {
                                 let distance = utils.getDistance([elevator.x, elevator.y], [actor.x, actor.y]);
                                 //if in range, send order to climb either send static move
-                                if (distance < 32) {
+                                if (distance < 48 && elevator.settled) {
                                     console.log('sent use elevator order');
                                     sendUseElevatorOrder(event, actor, elevator, true);
                                     return;

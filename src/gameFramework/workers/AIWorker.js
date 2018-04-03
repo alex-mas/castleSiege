@@ -149,13 +149,13 @@ const getClosestWallSection = function (actor) {
 }
 
 const searchElevator = function (actor) {
-    if(gameContext.elevators.length === 1)
+    if(gameContext.elevators.length === 1 && gameContext.elevators[0].team === actor.team)
         return gameContext.elevators[0];
     let closestElevator = undefined;
     let distanceToElevator = undefined;
     for (let i = 0; i < gameContext.elevators.length; i++) {
         const elevator = gameContext.elevators[i];
-        console.log(elevator);
+        //console.log(elevator);
         if (
             elevator.team === actor.team
             //elevator.settled
@@ -296,6 +296,8 @@ onmessage = function (e) {
                             }
 
                         }
+                        sendEmptyOrder(event, actor, 'NOT_ACTUALLY_ERROR: no valid target found from the target pool');
+                        return;    
                     } else {
                         let optimalAttack = chooseOptimalAttack(actor, attacks, enemy);
                         let goCloseTo = actor.attributes.isRanged ? true: false;

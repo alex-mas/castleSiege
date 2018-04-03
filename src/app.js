@@ -256,6 +256,8 @@ function initializeArcher(player, x, y) {
     );
     game._units.push(unit);
     game._unitIds[unit._id] = unit;
+    console.log(player);
+    console.log(unit.altitudeLayer);
 }
 function initializeUnit(type, player, x, y) {
     if (type === 'soldier') {
@@ -336,54 +338,32 @@ function create() {
     )
     game._units.push(test);
     game._unitIds[test._id] = test;
-/*
-    //instantiate all the units in recrangular formation
-    for (let j = 0; j < 10; j++) {
-        for (let i = 0; i < 4; i++) {
-            let unit = new gameFramework.Soldier(
-                game,
-                32 + 32 * j,
-                32 + 32 * i,
-                'axeRed.png',
-                redPlayer,
-                {
-                    health: 100,
-                    ms: 60,
-                    attack: [{
-                        isOnCd: false,
-                        cd: 456,
-                        damage: 60,
-                        range: 63,
-                        ranged: false
-                    }],
-                    // isRanged: false
-                }
-            );
-            let unit2 = new gameFramework.Soldier(
-                game,
-                (window.innerWidth - 32) - 32 * j,
-                32 + 32 * i,
-                'axeBlue.png',
-                bluePlayer,
-                {
-                    health: 100,
-                    ms: 60,
-                    attack: [{
-                        isOnCd: false,
-                        cd: 456,
-                        damage: 60,
-                        range: 63,
-                        ranged: false
-                    }],
-                    //isRanged: true
-                }
-            );
-            game._units.push(unit, unit2);
-            game._unitIds[unit._id] = unit;
-            game._unitIds[unit2._id] = unit2;
+    const test2 = new gameFramework.SiegeTower(
+        game,
+        500,
+        600,
+        'tile_45.png',
+            game._players[0],
+        {
+            health: 2500,
+            ms: 30
         }
-    }
-    */
+    )
+    game._units.push(test2);
+    game._unitIds[test2._id] = test2;
+    const test3 = new gameFramework.SiegeTower(
+        game,
+        500,
+        300,
+        'tile_45.png',
+            game._players[0],
+        {
+            health: 2500,
+            ms: 30
+        }
+    )
+    game._units.push(test3);
+    game._unitIds[test3._id] = test3;
 
 }
 

@@ -2,49 +2,174 @@
     "id": "player2",
     "units":[
         {
-            "type": "archer",
-            "x": 1700,
+            "type": "soldier",
+            "x": 1500,
             "y": 32
         },
         {
-            "type": "archer",
-            "x": 1700,
+            "type": "soldier",
+            "x": 1500,
             "y": 64
         },
         {
-            "type": "archer",
-            "x": 1700,
+            "type": "soldier",
+            "x": 1500,
             "y": 96
         },
         {
-            "type": "archer",
-            "x": 1700,
+            "type": "soldier",
+            "x": 1500,
             "y": 128
         },
         {
-            "type": "archer",
-            "x": 1700,
+            "type": "soldier",
+            "x": 1500,
             "y": 160
         },
         {
-            "type": "archer",
-            "x": 1700,
+            "type": "soldier",
+            "x": 1500,
             "y": 192
         },
         {
-            "type": "archer",
-            "x": 1700,
+            "type": "soldier",
+            "x": 1500,
             "y": 224
         },
         {
-            "type": "archer",
-            "x": 1700,
+            "type": "soldier",
+            "x": 1500,
             "y": 256
         },
         {
-            "type": "archer",
-            "x": 1700,
+            "type": "soldier",
+            "x": 1500,
             "y": 288
+        },
+        {
+            "type": "soldier",
+            "x": 1500,
+            "y": 320
+        },
+        {
+            "type": "soldier",
+            "x": 1500,
+            "y": 352
+        },
+        {
+            "type": "soldier",
+            "x": 1500,
+            "y": 384
+        },
+        {
+            "type": "soldier",
+            "x": 1500,
+            "y": 416
+        },
+        {
+            "type": "soldier",
+            "x": 1500,
+            "y": 448
+        },
+        {
+            "type": "soldier",
+            "x": 1500,
+            "y": 480
+        },
+        {
+            "type": "soldier",
+            "x": 1500,
+            "y": 512
+        },
+        {
+            "type": "soldier",
+            "x": 1500,
+            "y": 544
+        },
+        {
+            "type": "soldier",
+            "x": 1532,
+            "y": 32
+        },
+        {
+            "type": "soldier",
+            "x": 1532,
+            "y": 64
+        },
+        {
+            "type": "soldier",
+            "x": 1532,
+            "y": 96
+        },
+        {
+            "type": "soldier",
+            "x": 1532,
+            "y": 128
+        },
+        {
+            "type": "soldier",
+            "x": 1532,
+            "y": 160
+        },
+        {
+            "type": "soldier",
+            "x": 1532,
+            "y": 192
+        },
+        {
+            "type": "soldier",
+            "x": 1532,
+            "y": 224
+        },
+        {
+            "type": "soldier",
+            "x": 1532,
+            "y": 256
+        },
+        {
+            "type": "soldier",
+            "x": 1532,
+            "y": 288
+        },
+        {
+            "type": "soldier",
+            "x": 1532,
+            "y": 320
+        },
+        {
+            "type": "soldier",
+            "x": 1532,
+            "y": 352
+        },
+        {
+            "type": "soldier",
+            "x": 1532,
+            "y": 384
+        },
+        {
+            "type": "soldier",
+            "x": 1532,
+            "y": 416
+        },
+        {
+            "type": "soldier",
+            "x": 1532,
+            "y": 448
+        },
+        {
+            "type": "soldier",
+            "x": 1532,
+            "y": 480
+        },
+        {
+            "type": "soldier",
+            "x": 1532,
+            "y": 512
+        },
+        {
+            "type": "soldier",
+            "x": 1532,
+            "y": 544
         }
     ]
 }

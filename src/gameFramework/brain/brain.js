@@ -51,7 +51,6 @@ Brain.prototype.onAIOrder = function(order){
 
 
 Brain.prototype.update = function(context){
-
     
 }
 

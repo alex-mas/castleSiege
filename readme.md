@@ -1,6 +1,3 @@
-![Project Icon](".resources/icon.png")
-
-
 # Castle Siege technical demo #
 
 
@@ -30,5 +27,5 @@ Project i wrote to learn phaserjs and electron.
 
 
 
-Â© 2017-2018 Alex Mas
+© 2017-2018 Alex Mas
 

@@ -91,12 +91,12 @@ Pawn.prototype.constructor = Pawn;
 Pawn.prototype.kill = function(){
     console.log('unit died', this);
     console.log(`Number of units alive: ${this.game._units.length}`);
-    Phaser.Sprite.prototype.kill.call(this);
     let index = this.game._units.indexOf(this);
     if(index > -1){
         this.game._units.splice(this, 1);
     }
-    this.game._unitIds[this._id] = undefined;
+    delete this.game._unitIds[this._id];
+    Phaser.Sprite.prototype.kill.call(this);
     this.body.destroy();
     this.destroy();
 }*/

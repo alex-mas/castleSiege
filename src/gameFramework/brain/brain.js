@@ -31,7 +31,7 @@ Brain.prototype.onAIOrder = function(order){
             console.warn('Unable to find target');
         }
     }else if(order.error){
-        console.warn('AI_ERROR: ',order.error);
+        //console.warn('AI_ERROR: ',order.error);
     }else{
         isOrderCorrect = true;
     }

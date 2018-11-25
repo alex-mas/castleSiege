@@ -4,7 +4,6 @@ const fs = require('fs');
 const os = require('os');
 const CPU_COUNT = os.cpus().length;
 
-
 //Styles
 import "./stylesheets/reset.css";
 import "./stylesheets/main.css";
@@ -15,17 +14,18 @@ const logger = require('./dev_modules/logger.js');
 
 
 //Custom game engine modules
-//TODO: Use ES6 destructuring to export relevant classes - Pay for what you use n stuff
+//TODO: Use ES6 destructuring to import relevant classes
 const gameFramework = require('./gameFramework/gameFramework.js');
+const Soldier = gameFramework.Soldier;
 //Custom environment variables
 import env from "env";
 
-import testScenario from './scenarios/testScenario/castle.json';
+import testScenario from './scenarios/testScenario/map.json';
 import testP1 from './scenarios/testScenario/player_1.json';
 import testP2 from './scenarios/testScenario/player_2.json';
 
 
-const Soldier = gameFramework.Soldier;
+
 
 const config = {
     width: window.innerWidth,
@@ -52,6 +52,7 @@ const __srcdir = __dirname + '../src';
 
 game._units = [];
 game._unitIds = {};
+game._walls = [];
 
 let SHOULD_GRID_UPDATE = undefined;
 game.grid = {
@@ -150,6 +151,7 @@ function paintWorldGround() {
                 currentTile.body.debug = true;
                 game.grid.collisionGrid[0][y][x] = 1;
                 game.grid.collisionGrid[1][y][x] = 0;
+                game.walls
                 currentTile.body.setCollisionGroup(game._collisionGroups.walls);
                 currentTile.body.collides([game._collisionGroups.level[0], game._collisionGroups.grass]);
             } else {
@@ -165,6 +167,7 @@ function paintWorldGround() {
 }
 
 function loadScenario(scenario) {
+    game.world.setBounds(0, 0, scenario.layout[0].length * 64, scenario.layout.length * 64);
     for (var y = 0; y < scenario.layout.length; y++) {
         game.grid.collisionGrid[0][y] = [];
         game.grid.collisionGrid[1][y] = [];
@@ -196,6 +199,7 @@ function loadScenario(scenario) {
                 currentTile.body.collides([game._collisionGroups.level[0], game._collisionGroups.grass]);
                 game.grid.collisionGrid[0][y][x] = 1;
                 game.grid.collisionGrid[1][y][x] = 0;
+                game._walls.push(currentTile);
 
             }
         }
@@ -248,7 +252,7 @@ function initializeArcher(player, x, y) {
                 isOnCd: false,
                 cd: 456,
                 damage: 40,
-                range: 263,
+                range: 663,
                 ranged: true
             }],
             isRanged: true
@@ -276,7 +280,7 @@ function initializePlayer(_player) {
         player = new gameFramework.Player(gameFramework.PlayerType.AI, _player.id, blueTeam, regularAi);
     }
     game._players.push(player);
-    for(var i =0; i < _player.units.length; i++){
+    for (var i = 0; i < _player.units.length; i++) {
         const unit = _player.units[i]
         initializeUnit(unit.type, player, unit.x, unit.y);
     }
@@ -330,7 +334,7 @@ function create() {
         500,
         500,
         'tile_45.png',
-            game._players[0],
+        game._players[0],
         {
             health: 2500,
             ms: 30
@@ -343,7 +347,7 @@ function create() {
         500,
         600,
         'tile_45.png',
-            game._players[0],
+        game._players[0],
         {
             health: 2500,
             ms: 30
@@ -356,7 +360,7 @@ function create() {
         500,
         300,
         'tile_45.png',
-            game._players[0],
+        game._players[0],
         {
             health: 2500,
             ms: 30
@@ -365,12 +369,30 @@ function create() {
     game._units.push(test3);
     game._unitIds[test3._id] = test3;
 
+
+    const test4 = new gameFramework.SiegeTower(
+        game,
+        500,
+        900,
+        'tile_45.png',
+        game._players[0],
+        {
+            health: 2500,
+            ms: 30
+        }
+    )
+    game._units.push(test4);
+    game._unitIds[test4._id] = test4;
+
+
 }
 
 
 function update() {
-    //console.log(game.time.fps);
+    console.log(game.time.fps);
     regularAi.update(undefined, SHOULD_GRID_UPDATE);
+    game.camera.x += 0.15 * (game.input.mousePointer.x - window.innerWidth / 2);
+    game.camera.y += 0.15 * (game.input.mousePointer.y - window.innerHeight / 2);
 
     //console.log(game.input.mousePointer.x, game.input.mousePointer.y);
     //custom game update logic, most logic is called on the update methods of instantiated game objects tho
@@ -378,7 +400,6 @@ function update() {
 
 
 function render() {
-
 }
 
 

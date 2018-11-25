@@ -1,15 +1,9 @@
 #FIRST ITERATION REMAINING TASKS:
 
 
-## Account for the multiple height pathfinding system in the AI systems
-- Make units able to go between levels if possible
-
 ## Finish implementing elevators
-- Make them get next to the wall section they want to lock with
-- Make the unit completely inmovable by any means when it is settled
-- Make the pathing grid update when an elevator locks with a wall section
-- Elevators must connect 2 altitude layers
-
+- Elevators must connect 2 altitude layers (2 arbitrary layers defined upon construction of the elevator) -> or connect all layers from 0 to N where N is the heigth of the elevator -> then requests to change of pathing level would add a desired target level for the elevator to know what action to perform on the unit
+- Make them usable by enemy units once its settled
 
 
 ## Implement wall system
@@ -20,20 +14,21 @@
 
 
 ## Implement Archer units
-- It is just a special soldier with a ranged attack
-- The attack should send a projectile towards its target
-- Ranged units can attack units on all altitudeLayers
+- Implement a visible projectile and a hit chance
+- Make the ranged units more reponsive
 
 
 ## Create a landing page to choose testing variabes such as the environment (plain, rocks, castle, etc..) (num of units, type of units, teams, etc..)
 - Delay game generation
-- Provide input handling to choose the variables
+- Provide input handling to choose the variables -> that is, to construct a custom json schema for the battle
 - Initialize the game with the variables provided
+- Add an exit point to the battle so that app flow goes back to the testing UI after it finishes
 
 
 
 ## Optimize the app further -> target 2000 units at >30 fps
 - Early quits from functions to prevent innecesary computations
+- ECS?
 - Avoid using fancy dynamic typing features to allow JIT to produce better assembly code
 - Remove units from the relevant array when they die to reduce the computational burden for hot function
 - Investigate further in the web about rendering and engine performance tips

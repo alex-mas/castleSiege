@@ -92,11 +92,6 @@ SoldierBrain.prototype.update = function (context) {
                 //!this.host.currentOrder.target.alive
             )
         ) {
-            /* if(this.__counter > 2300){
-                 console.log(this.host.orders);
-                 console.log(this.host.orders[0].target.alive);
-             }*/
-            //console.log('requesting ai computation');
             this._computing = true;
             this.owner.AI.choose('soldierAI', this.getHostContext());
         }

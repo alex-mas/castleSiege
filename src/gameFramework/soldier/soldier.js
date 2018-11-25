@@ -89,7 +89,7 @@ Soldier.prototype.executeOrders = function () {
                     if (this.currentOrder.method === 'once') {
                         this.currentOrder.done = this.attack(this.currentOrder.attack, this.currentOrder.target);
                     } else if (this.currentOrder.method === 'multiple') {
-                        this.currentOrder.done = this.attack(this.currentOrder.attack, this.currentOrder.target);;
+                        this.currentOrder.done = this.attack(this.currentOrder.attack, this.currentOrder.target);
                     }
 
                 } else {

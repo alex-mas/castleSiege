@@ -11,9 +11,9 @@ const AI = function (game, id, eventCallbacks) {
 
     this.managing = [];
 
-    this.nextContextUpdate;
+    this.nextContextUpdate = -1;
 
-    this.amountOfUnits;
+    this.amountOfUnits = 0;
 
     this.eventCallbacks = {};
 
@@ -178,9 +178,10 @@ AI.prototype.threadCallback = function (e) {
     let event = e.data.event;
     if (this.eventCallbacks[event]) {
         this.eventCallbacks[eventHandler](e.data);
-        return;
+    }else{
+        this.broadcastOrder(e.data);
     }
-    this.broadcastOrder(e.data);
+    
 
 }
 

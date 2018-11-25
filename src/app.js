@@ -151,7 +151,6 @@ function paintWorldGround() {
                 currentTile.body.debug = true;
                 game.grid.collisionGrid[0][y][x] = 1;
                 game.grid.collisionGrid[1][y][x] = 0;
-                game.walls
                 currentTile.body.setCollisionGroup(game._collisionGroups.walls);
                 currentTile.body.collides([game._collisionGroups.level[0], game._collisionGroups.grass]);
             } else {
@@ -391,8 +390,8 @@ function create() {
 function update() {
     console.log(game.time.fps);
     regularAi.update(undefined, SHOULD_GRID_UPDATE);
-    game.camera.x += 0.15 * (game.input.mousePointer.x - window.innerWidth / 2);
-    game.camera.y += 0.15 * (game.input.mousePointer.y - window.innerHeight / 2);
+    game.camera.x += 0.15 * ((game.input.mousePointer.x - window.innerWidth / 2)/200);
+    game.camera.y += 0.15 * ((game.input.mousePointer.y - window.innerHeight / 2)/200);
 
     //console.log(game.input.mousePointer.x, game.input.mousePointer.y);
     //custom game update logic, most logic is called on the update methods of instantiated game objects tho

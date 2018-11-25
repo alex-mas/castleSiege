@@ -1,5 +1,10 @@
 ![Project Icon](".resources/icon.png")
-# Castle Siege technical demo#
+
+
+# Castle Siege technical demo #
+
+
+![Alt Text](./battle.gif)
 
 This showcases an electron app that uses electron and web workers as a base for the implementation of the game logic.
 
@@ -11,30 +16,19 @@ The game consist of fast peaced battles between armies in variable terrains such
 
 * Relevant game classes that implement movement and attacking with a order based system -> Pawns -> Units -> Soldiers
 
-* Pathfinding system computed in auxiliar thread that broadcasts back to the main thread
+* Pathfinding system computed in auxiliary thread that broadcasts back to the main thread
 
-* Event based order system that allows the auxiliary threads to broadcast the data to the right objects
+* AI computed in auxiliary threads.
 
+* Can simulate battles up to 1k-2k units.
 
-
-### Planned features ###
-
-* AI system that live in auxiliary threads
-
-* Multiple levels of height for castle pathfinding
-
-* Landing page to choose testing variabes and create a repeatable experience
-
-* Add several choice for variety in AI strategies
 
 
 ## Purpose ##
 
+Project i wrote to learn phaserjs and electron.
 
-This will serve as one of the building blocks for a medieval game.
 
 
-## Copyright ##
-
-� 2017-2018 Alex Mas
+© 2017-2018 Alex Mas
 

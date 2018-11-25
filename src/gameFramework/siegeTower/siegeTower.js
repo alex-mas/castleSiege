@@ -24,7 +24,7 @@ const SiegeTower = function (game, x, y, spriteName, player, attributes, brain) 
     this.__type__ = 'siegeTower';
     //unit implements moving and attributes
     Unit.call(this, game, x, y, spriteName, player, attributes);
-    this.body.debug = true;
+    //this.body.debug = true;
     this.body.mass = 2385+Math.random()*45;
     //define its brain
     this.brain = brain || new SiegeTowerBrain(game, this, player);
@@ -53,7 +53,7 @@ SiegeTower.prototype.settle = function(){
     this.game.grid.collisionGrid[0][this.gridY][this.gridX] = 0;
     this.game.grid.collisionGrid[1][this.gridY][this.gridX] = 0;
     this.game.grid.tileGrid[this.gridY][this.gridX].body.clearCollision();
-    this.game.grid.tileGrid[this.gridY][this.gridX].body.debug = true;
+    //this.game.grid.tileGrid[this.gridY][this.gridX].body.debug = true;
 }
 
 
